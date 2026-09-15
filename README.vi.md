@@ -514,7 +514,7 @@ Model merge giữ nguyên toàn bộ API của v3 Turbo (clone, preset, streamin
 
 | Model | Định dạng | Thiết bị | Song ngữ | Tính năng | Tốc độ |
 |---|---|---|---|---|---|
-| **VieNeu-TTS-v3-Turbo** *(mặc định)* | PyTorch/ONNX | **GPU/CPU** | ✅ | **48 kHz, giọng dựng sẵn, clone giọng, tag cảm xúc, hội thoại** | **Nhanh (batch)** |
+| **VieNeu-TTS-v3-Turbo** *(mặc định)* | PyTorch/ONNX | **GPU/CPU** | ✅ | **48 kHz, giọng dựng sẵn, clone giọng, tag cảm xúc, hội thoại, streaming (API chuẩn OpenAI)** | **Cực nhanh** — GPU: batch + 16 luồng real-time ở RTF ≈ 0,5; CPU int8: RTF 0,35 |
 | **VieNeu-TTS-v3-Nano** *(preview)* | ONNX | **CPU yếu / edge** | ⚠️ yếu | 24 kHz, 11 giọng dựng sẵn, clone giọng, tag cảm xúc — **chất lượng thấp hơn (nhất là tiếng Anh / Anh-Việt)** | **Nhanh nhất trên CPU (RTF 0.11–0.22 desktop)** |
 | **VieNeu-TTS-v2** | PyTorch | **GPU** | ✅ | **Podcast, Anh-Việt CS** | **Nhanh (LMDeploy)** |
 | **VieNeu-v2-CPU** | GGUF/ONNX | **CPU/Edge** | ✅ | **Podcast, Anh-Việt CS** | **Cực nhanh** |

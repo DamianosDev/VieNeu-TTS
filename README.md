@@ -522,7 +522,7 @@ The merged model keeps the full v3 Turbo API (cloning, presets, streaming) on th
 
 | Model | Format | Device | Bilingual | Features | Speed |
 |---|---|---|---|---|---|
-| **VieNeu-TTS-v3-Turbo** *(default)* | PyTorch/ONNX | **GPU/CPU** | ✅ | **48 kHz, Default voices, Cloning, Emotion cues, Conversation** | **Fast (batched)** |
+| **VieNeu-TTS-v3-Turbo** *(default)* | PyTorch/ONNX | **GPU/CPU** | ✅ | **48 kHz, Default voices, Cloning, Emotion cues, Conversation, Streaming (OpenAI-compatible API)** | **Ultra Fast** — GPU: batched + 16 real-time streams at RTF ≈ 0.5; CPU int8: RTF 0.35 |
 | **VieNeu-TTS-v3-Nano** *(preview)* | ONNX | **weak CPU / edge** | ⚠️ weak | 24 kHz, 11 preset voices, cloning, emotion cues — **lower quality (esp. English / En-Vi)** | **Fastest on CPU (RTF 0.11–0.22 desktop)** |
 | **VieNeu-TTS-v2** | PyTorch | **GPU** | ✅ | **Podcast, En-Vi CS** | **Fast (LMDeploy)** |
 | **VieNeu-v2-CPU** | GGUF/ONNX | **CPU/Edge** | ✅ | **Podcast, En-Vi CS** | **Extreme Speed** |
