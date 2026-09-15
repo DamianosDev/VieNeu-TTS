@@ -432,6 +432,12 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
             self._batch_engine.babble_retries = self.babble_retries
         return self._batch_engine
 
+    def _fused_available(self) -> bool:
+        """The batch engine runs frames as CUDA graphs here (see fused.py)."""
+        eng = self._get_batch_engine()
+        return bool(eng is not None and getattr(eng, "use_fused", False)
+                    and getattr(self.engine.device, "type", "") == "cuda")
+
     def _infer_chunks(
         self,
         chunks: List[str],
@@ -454,6 +460,13 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         """
         n = len(chunks)
         engine = self._get_batch_engine() if (batch_size > 1 and n > 1) else None
+        # A single chunk (or batch_size=1) used to take the single-sequence
+        # engine. On CUDA the batch engine's fused CUDA graph beats it even
+        # at B=1 — measured 2.3 s → 0.38 s for one sentence — so every chunk
+        # goes through the batch engine there; groups of ``batch_size`` still
+        # decide how many share a forward.
+        if engine is None and self._fused_available():
+            engine = self._get_batch_engine()
         phs = [phonemize_text_with_emotions(c) for c in chunks]
 
         def _one(ph: str) -> np.ndarray:

@@ -141,11 +141,14 @@ pip install vieneu
 ```
 
 **GPU (CUDA)** — only if you have an NVIDIA GPU. On Linux `pip install "vieneu[cuda]"` is enough (PyPI torch ships CUDA there); on Windows install the CUDA torch **first** as below. 
-> ℹ️ **When is GPU actually worth it?** The GPU win comes from **batching**, so it
-> only pays off on **long text** (many chunks generated together in one forward —
-> long-form or bulk synthesis). For **short text** the torch-free **CPU/ONNX** path
-> is usually *faster* (there's no batch to fill, and no kernel-launch overhead). Use
-> CPU for short, interactive calls; reach for GPU for long-form or high-throughput work.
+> ℹ️ **How fast is the GPU path?** Since 3.7.0 every audio frame is **one CUDA
+> graph** (acoustic decoder + sampling + repetition penalty + backbone step in a
+> single replay — no `torch.compile`, no C++ toolchain needed). Measured on an
+> RTX 3060: a 3.5 s sentence in **0.36 s**; a 2-chunk paragraph (19 s) in
+> **1.4 s**; 16 chunks (154 s) in **2.8 s** (RTF 0.02) — previously 2.3 s /
+> 8.7 s / 16.7 s. The first call for each batch size pays ~0.5 s to capture the
+> graph (kept afterwards; servers can call `warm_fused()` at start-up).
+> `VIENEU_FUSED_FRAME=0` restores the plain loop.
 
 ```bash
 pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128

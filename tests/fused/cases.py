@@ -1,0 +1,103 @@
+"""Tests cho đường CUDA-graph của v3 Turbo (``vieneu.v3_turbo_serve.fused``).
+
+Chạy trong tiến trình riêng bởi ``tests/test_fused_frame.py`` (tên tệp cố ý không khớp ``test_*`` để pytest không tự gom vào tiến trình chính) — vài module
+test cùng thư mục thay ``torch`` trong ``sys.modules`` bằng stub lúc import,
+mà phần này cần torch thật. Lịch sử phạt lặp và sampler chạy được trên CPU
+nên không cần GPU; phần backbone/graph chỉ chạy khi có CUDA (skip nếu không).
+"""
+import math
+import random
+
+import pytest
+
+torch = pytest.importorskip("torch")
+
+from vieneu._v3_turbo_engine.rep_history import RepetitionHistory
+from vieneu.v3_turbo_serve.batched_acoustic import _sample_batched
+from vieneu.v3_turbo_serve.fused import GpuRepHistory, batch_bucket, cache_len_bucket, sample_gpu
+
+
+def _seen(h: GpuRepHistory, b: int, ch: int) -> set:
+    return set(torch.nonzero(h.counts[b, ch] > 0).flatten().tolist())
+
+
+@pytest.mark.parametrize("window", [0, 3, 8, 64])
+def test_gpu_history_matches_deque_history(window):
+    B, n_vq = 3, 4
+    gpu = GpuRepHistory(B, n_vq, 1024, window, torch.device("cpu"))
+    ref = [RepetitionHistory(n_vq, window) for _ in range(B)]
+    rng = random.Random(7)
+    for _ in range(50):
+        for ch in range(n_vq):
+            codes = torch.tensor([rng.randrange(12) for _ in range(B)])
+            gpu.add(ch, codes)
+            for b in range(B):
+                ref[b][ch].add(int(codes[b]))
+        gpu.advance()
+        for ch in range(n_vq):
+            for b in range(B):
+                assert _seen(gpu, b, ch) == set(ref[b][ch])
+
+
+def test_gpu_history_penalises_like_the_host_sampler():
+    """Cùng logits, cùng lịch sử → cùng logits sau phạt (greedy để so được)."""
+    B, n_vq, V = 2, 2, 32
+    gpu = GpuRepHistory(B, n_vq, V, 4, torch.device("cpu"))
+    ref = [RepetitionHistory(n_vq, 4) for _ in range(B)]
+    for code in [(3, 5), (3, 9), (7, 5)]:
+        c = torch.tensor(code)
+        gpu.add(0, c)
+        for b in range(B):
+            ref[b][0].add(int(c[b]))
+        gpu.advance()
+    logits = torch.randn(B, V) * 3
+    want = _sample_batched(logits.clone(), 0.0, 0, 1.0, 1.2, [ref[b][0] for b in range(B)])
+    got = sample_gpu(gpu.penalise(logits.clone(), 0, 1.2), 0.0, 0, 1.0)
+    assert torch.equal(want, got)
+
+
+def test_reset_clears_everything():
+    gpu = GpuRepHistory(1, 1, 16, 2, torch.device("cpu"))
+    gpu.add(0, torch.tensor([5]))
+    gpu.advance()
+    gpu.reset()
+    assert _seen(gpu, 0, 0) == set()
+    assert int(gpu.frame) == 0
+
+
+def test_sampler_respects_top_k_and_top_p():
+    torch.manual_seed(0)
+    logits = torch.tensor([[10.0, 9.0, -5.0, -6.0, -7.0]])
+    for _ in range(50):
+        assert int(sample_gpu(logits, 0.8, 2, 0.95)) in (0, 1)
+    assert int(sample_gpu(logits, 0.0, 2, 0.95)) == 0
+
+
+def test_buckets():
+    assert [batch_bucket(n) for n in (1, 2, 3, 5, 8, 9, 16, 17)] == [1, 2, 4, 8, 8, 16, 16, 32]
+    assert cache_len_bucket(700, 2048) == 1024
+    assert cache_len_bucket(1025, 2048) == 1536
+    assert cache_len_bucket(5000, 2048) == 2048
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="needs CUDA")
+def test_static_backbone_matches_hf_in_fp32():
+    """Bước giải mã trên cache tĩnh phải khớp HF DynamicCache (fp32: ~1e-6)."""
+    from vieneu import Vieneu
+    from vieneu.v3_turbo_serve.fused import StaticBackbone
+
+    tts = Vieneu(mode="v3turbo", device="cuda", backend="pytorch", dtype="float32")
+    eng = tts._get_batch_engine()
+    voice = tts.get_preset_voice()
+    reqs = [{"text": t, "speaker_emb": voice["speaker_emb"], "ref_codes": voice["codes"]}
+            for t in ["Xin chào các bạn.", "Hôm nay trời đẹp quá."]]
+    embeds = [eng._prompt_embeds(r) for r in reqs]
+    h, cache, mask, pos = eng.bb.prefill(embeds)
+    sb = StaticBackbone(eng.model, len(embeds), 1024)
+    sb.load(cache, mask, pos)
+    H = eng.model.config.hidden_size
+    for _ in range(4):
+        x = torch.randn(len(embeds), 1, H, device=h.device, dtype=h.dtype) * 0.5
+        h_ref, cache, mask, pos = eng.bb.decode_step(x, cache, mask, pos)
+        h_new = sb.step(x)
+        assert torch.allclose(h_ref, h_new, atol=1e-4, rtol=1e-4)

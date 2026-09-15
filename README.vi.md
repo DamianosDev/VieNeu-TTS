@@ -131,11 +131,14 @@ pip install "transformers==4.57.6"   # Qwen3 backbone + MOSS codec (bản ổn �
 pip install vieneu
 ```
 
-> ℹ️ **Khi nào GPU thật sự đáng dùng?** Lợi thế của GPU đến từ **batch**, nên chỉ
-> đáng khi **text dài** (nhiều chunk chạy chung một forward — đọc dài, tổng hợp hàng
-> loạt). Với **text ngắn**, đường **CPU/ONNX** không-torch thường *nhanh hơn* (không
-> có gì để lấp batch). Dùng CPU cho câu ngắn, tương tác; dùng GPU cho đọc dài hoặc
-> khối lượng lớn.
+> ℹ️ **GPU nhanh cỡ nào?** Từ 3.7.0 mỗi khung âm thanh là **một CUDA graph**
+> (acoustic + sampling + phạt lặp + backbone gộp một lần phát, không cần
+> `torch.compile` hay trình biên dịch C++). Đo trên RTX 3060: một câu 3,5 s
+> mất **0,36 s**; đoạn 2 chunk (19 s) **1,4 s**; 16 chunk (154 s) **2,8 s**
+> (RTF 0,02) — trước đó lần lượt 2,3 s / 8,7 s / 16,7 s. Lần gọi đầu cho mỗi
+> cỡ batch tốn thêm ~0,5 s để capture graph (giữ lại cho các lần sau; server
+> có thể gọi `warm_fused()` lúc khởi động). `VIENEU_FUSED_FRAME=0` tắt để
+> quay về vòng lặp thường.
 
 ```python
 from vieneu import Vieneu
