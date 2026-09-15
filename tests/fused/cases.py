@@ -122,3 +122,127 @@ def test_frame_hook_stops_a_running_batch_within_frames():
     with pytest.raises(RuntimeError, match="cancelled"):
         tts.infer_batch(["Xin chào các bạn, hôm nay trời đẹp quá."])  # giọng mặc định
     assert len(calls) == 3
+
+
+# ── continuous batching (stream.py) ──────────────────────────────────────────
+
+def test_gpu_history_rows_start_late_do_not_evict_unwritten_slots():
+    """Row vào giữa chừng (``reset_rows``) chỉ được đuổi mã do chính nó ghi."""
+    B, n_vq, window = 2, 1, 3
+    gpu = GpuRepHistory(B, n_vq, 16, window, torch.device("cpu"))
+    ref = [RepetitionHistory(n_vq, window) for _ in range(B)]
+    for code in (1, 2, 3, 4):        # row 0 chạy trước 4 khung
+        gpu.add(0, torch.tensor([code, 9]))
+        gpu.advance()
+        ref[0][0].add(code)
+    gpu.reset_rows(torch.tensor([1]))   # row 1 bắt đầu tại khung 4
+    assert _seen(gpu, 1, 0) == set()
+    for code in (5, 6, 7, 8):
+        gpu.add(0, torch.tensor([code, code]))
+        gpu.advance()
+        ref[0][0].add(code)
+        ref[1][0].add(code)
+        assert _seen(gpu, 0, 0) == set(ref[0][0])
+        assert _seen(gpu, 1, 0) == set(ref[1][0])
+
+
+def test_sample_gpu_rows_matches_scalar_sampler_per_row():
+    """Mỗi row một bộ tham số: greedy row, top-k row, và row tắt top-k."""
+    from vieneu.v3_turbo_serve.fused import sample_gpu_rows
+
+    torch.manual_seed(0)
+    logits = torch.tensor([[10.0, 9.0, -5.0, -6.0, -7.0]]).repeat(3, 1)
+    temperature = torch.tensor([[0.0], [0.8], [0.8]])
+    top_k = torch.tensor([[2], [2], [0]])
+    top_p = torch.tensor([[0.95], [0.95], [1.0]])
+    for _ in range(50):
+        got = sample_gpu_rows(logits, temperature, top_k, top_p)
+        assert int(got[0]) == 0
+        assert int(got[1]) in (0, 1)
+        assert int(got[2]) in range(5)
+    # Row tắt top-k/top-p vẫn đúng phân phối: mã 2..4 gần như không bao giờ được chọn
+    # với logits cách nhau 15 đơn vị, nhưng cấu trúc không cấm (không -inf).
+    nan_logits = torch.full((1, 5), float("nan"))
+    assert int(sample_gpu_rows(nan_logits, torch.tensor([[0.8]]), torch.tensor([[0]]), torch.tensor([[1.0]]))) in range(5)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="needs CUDA")
+def test_load_row_matches_load_even_across_the_ring_boundary():
+    """Nạp từng row vào cache ring (``load_row``) phải cho cùng bước giải mã
+    như nạp cả batch (``load``), kể cả khi chỉ số ghi sắp quay vòng."""
+    from vieneu import Vieneu
+    from vieneu.v3_turbo_serve.fused import StaticBackbone
+
+    tts = Vieneu(mode="v3turbo", device="cuda", backend="pytorch", dtype="float32")
+    eng = tts._get_batch_engine()
+    voice = tts.get_preset_voice()
+    reqs = [{"text": t, "speaker_emb": voice["speaker_emb"], "ref_codes": voice["codes"]}
+            for t in ["Xin chào các bạn.", "Hôm nay trời đẹp quá."]]
+    embeds = [eng._prompt_embeds(r) for r in reqs]
+    h, cache, mask, pos = eng.bb.prefill(embeds)
+    T = mask.shape[1]
+    H = eng.model.config.hidden_size
+    for start in (0, 1024 - 7, 500):
+        ref = StaticBackbone(eng.model, 2, 1024)
+        ref.load(cache, mask, pos)
+        sb = StaticBackbone(eng.model, 2, 1024)
+        sb.cur.fill_(start)
+        for i in range(2):
+            Ti = embeds[i].shape[0]
+            keys = [(cache.layers[l].keys if hasattr(cache, "layers") else cache.key_cache[l])[i, :, T - Ti:T]
+                    for l in range(len(sb.layers))]
+            vals = [(cache.layers[l].values if hasattr(cache, "layers") else cache.value_cache[l])[i, :, T - Ti:T]
+                    for l in range(len(sb.layers))]
+            sb.load_row(i, keys, vals)
+        for _ in range(12):
+            x = torch.randn(2, 1, H, device="cuda") * 0.5
+            assert torch.allclose(ref.step(x), sb.step(x), atol=1e-4, rtol=1e-4)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="needs CUDA")
+def test_infer_stream_serves_concurrent_callers_and_matches_full_decode():
+    """Nhiều thread gọi ``infer_stream`` cùng lúc: mỗi luồng nhận audio đúng
+    độ dài mã của mình, audio stream khớp decode đầy đủ cùng mã, huỷ giữa
+    chừng giải phóng slot."""
+    import threading
+    import numpy as np
+    from vieneu import Vieneu
+
+    tts = Vieneu(mode="v3turbo", device="cuda", backend="pytorch", max_streams=4)
+    sched = tts._get_stream_scheduler()
+    assert sched is not None
+    texts = ["Xin chào các bạn.", "Hôm nay trời đẹp quá, mình đi dạo nhé.", "Một hai ba bốn năm."]
+    out = [None] * len(texts)
+
+    def run(i):
+        out[i] = np.concatenate(list(tts.infer_stream(texts[i], apply_watermark=False)))
+
+    ths = [threading.Thread(target=run, args=(i,)) for i in range(len(texts))]
+    for t in ths:
+        t.start()
+    for t in ths:
+        t.join()
+    for a in out:
+        assert a.ndim == 1 and len(a) % 3840 == 0 and 0.5 <= len(a) / 48000 <= 6.0
+        assert np.abs(a).max() > 0.05
+    assert sched.n_active == 0
+
+    # Audio stream == decode đầy đủ của cùng mã (codec streaming không lookahead).
+    spk, codes = tts._resolve_ref(None, None, True, True)
+    from vieneu_utils.phonemize_text import phonemize_text_with_emotions
+    h = sched.submit(phonemes=phonemize_text_with_emotions(texts[1]), speaker_emb=spk,
+                     ref_codes=codes, max_new_frames=80)
+    streamed = np.concatenate(list(h))
+    idx = torch.remainder(torch.arange(h.f0, h.f0 + h.frames, device="cuda"), sched.frame.ring)
+    row_codes = sched.frame.codes.index_select(0, idx)[:, h.slot].cpu()
+    full = tts.engine._decode_codes(row_codes)
+    assert len(streamed) == len(full) == h.frames * 3840
+    assert np.abs(streamed - full).max() < 1e-3
+
+    g = tts.infer_stream(texts[1], apply_watermark=False)
+    next(g)
+    g.close()
+    import time
+    time.sleep(0.5)
+    assert sched.n_active == 0
+    tts.close()

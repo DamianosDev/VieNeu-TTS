@@ -13,6 +13,7 @@ natural style. The argument is still accepted everywhere for backward compatibil
 but it is ignored.
 """
 import logging
+import threading
 from pathlib import Path
 from typing import Any, Generator, List, Optional, Tuple, Union
 
@@ -118,6 +119,7 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         onnx_subfolder: Optional[str] = None,   # override thủ công subfolder; None → suy từ `precision`
         threads: int = 0,   # ONNX/CPU intra-op threads; 0 = mặc định engine (~nhân vật lý, cap 8). Đặt số cụ thể để tinh chỉnh.
         max_batch_size: int = 32,   # GPU/PyTorch: trần số chunk gộp vào một forward (static batching). Batch thực = min(số_chunk, max_batch_size). Bỏ qua trên CPU/ONNX.
+        max_streams: int = 16,   # GPU/PyTorch: số luồng `infer_stream` phục vụ đồng thời (continuous batching, một CUDA graph). Đo trên RTX 3060: 8 luồng chunk đầu ~135 ms, 16 ~200 ms, 32 ~260 ms. Bỏ qua trên CPU/ONNX.
         babble_retries: int = BABBLE_MAX_RETRIES,   # chunk <= 3 tiếng mà "nói thêm" (nhiều cụm âm hơn số tiếng) thì sinh lại tối đa N lần; 0 = tắt
         **kwargs: Any,
     ):
@@ -187,6 +189,11 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         # Static-batching (GPU/PyTorch). Dựng lười ở lần batch đầu; None trên CPU/ONNX.
         self.max_batch_size = max(1, int(max_batch_size))
         self._batch_engine = None
+        # Streaming scheduler (GPU/PyTorch): một worker thread + một CUDA graph
+        # phục vụ mọi `infer_stream` đang chạy. Dựng lười ở lần stream đầu.
+        self.max_streams = max(1, int(max_streams))
+        self._stream_sched = None
+        self._stream_lock = threading.Lock()
 
     # ── Preset voices (speaker embedding + reference codes) ─────────────────────
     def _load_v3_voices(self) -> None:
@@ -438,6 +445,24 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         return bool(eng is not None and getattr(eng, "use_fused", False)
                     and getattr(self.engine.device, "type", "") == "cuda")
 
+    def _get_stream_scheduler(self):
+        """Lazily build the continuous-batching stream scheduler (CUDA only).
+
+        Returns ``None`` on CPU/ONNX or when the fused graphs are disabled
+        (``VIENEU_FUSED_FRAME=0``); ``infer_stream`` then takes the engine's
+        own single-sequence path.
+        """
+        if not self._fused_available():
+            return None
+        with self._stream_lock:
+            if self._stream_sched is None:
+                from .v3_turbo_serve.stream import V3TurboStreamScheduler
+                self._stream_sched = V3TurboStreamScheduler(
+                    self._get_batch_engine(), max_streams=self.max_streams,
+                )
+                logger.info(f"✅ v3 Turbo stream scheduler ready (max_streams={self.max_streams})")
+        return self._stream_sched
+
     def _infer_chunks(
         self,
         chunks: List[str],
@@ -564,26 +589,32 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         apply_watermark: bool = True,
         **kwargs: Any,
     ) -> Generator[np.ndarray, None, None]:
+        """Synthesize ``text`` and yield 48 kHz float32 audio as it is generated.
+
+        On CUDA every call goes through one shared scheduler (see
+        ``v3_turbo_serve/stream.py``): concurrent calls from different threads
+        share a CUDA graph and one codec session, so a server can stream to
+        many listeners at once — first audio in ~110-135 ms with up to 8
+        streams on an RTX 3060. On CPU/ONNX the engine's own frame-level
+        streaming runs, one call at a time.
+        """
         speaker_emb, ref_codes = self._resolve_ref(voice, ref_audio, denoise, use_ref_codes)
         chunks, gaps = normalize_to_chunks_v3_with_gaps(text, max_chars=max_chars)
         pauses = gaps_to_silence(gaps)
-        # Prefer the engine's native frame-level streaming (low first-audio latency);
-        # both the PyTorch and ONNX engines expose infer_stream. Fall back to one
-        # full infer per chunk if not available.
-        stream_fn = getattr(self.engine, "infer_stream", None)
+        sampling = dict(
+            temperature=temperature, top_k=top_k, top_p=top_p,
+            repetition_penalty=repetition_penalty, repetition_window=repetition_window,
+        )
+        sched = self._get_stream_scheduler()
+        if sched is not None:
+            per_chunk = self._stream_chunks_gpu(sched, chunks, speaker_emb, ref_codes,
+                                                use_ref_codes, max_new_frames, sampling)
+        else:
+            per_chunk = self._stream_chunks_engine(chunks, speaker_emb, ref_codes,
+                                                   use_ref_codes, max_new_frames, sampling)
         sr = self.sample_rate
         last_out: Optional[np.ndarray] = None   # mẩu audio cuối đã phát của chunk trước
-        for ci, chunk in enumerate(chunks):
-            ph = phonemize_text_with_emotions(chunk)
-            chunk_frames_cap = min(max_new_frames, max_expected_frames(ph))
-            gen_kwargs = dict(
-                phonemes=ph, speaker_emb=speaker_emb, ref_codes=ref_codes,
-                use_ref_codes=use_ref_codes,
-                temperature=temperature, top_k=top_k, top_p=top_p,
-                max_new_frames=chunk_frames_cap, repetition_penalty=repetition_penalty,
-                repetition_window=repetition_window,
-            )
-            subs = stream_fn(**gen_kwargs) if stream_fn is not None else (self.engine.infer(**gen_kwargs),)
+        for ci, subs in enumerate(per_chunk):
             first = True
             for sub in subs:
                 if sub is None or len(sub) == 0:
@@ -598,6 +629,67 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
                 first = False
                 last_out = sub
                 yield self._apply_watermark(sub) if apply_watermark else sub
+
+    def _stream_chunks_engine(self, chunks, speaker_emb, ref_codes, use_ref_codes,
+                              max_new_frames, sampling):
+        """One audio iterator per text chunk from the engine's own streaming
+        (PyTorch single path or ONNX); a full ``infer`` per chunk if it has none."""
+        stream_fn = getattr(self.engine, "infer_stream", None)
+        for chunk in chunks:
+            ph = phonemize_text_with_emotions(chunk)
+            gen_kwargs = dict(
+                phonemes=ph, speaker_emb=speaker_emb, ref_codes=ref_codes,
+                use_ref_codes=use_ref_codes,
+                max_new_frames=min(max_new_frames, max_expected_frames(ph)), **sampling,
+            )
+            yield stream_fn(**gen_kwargs) if stream_fn is not None else (self.engine.infer(**gen_kwargs),)
+
+    def _stream_chunks_gpu(self, sched, chunks, speaker_emb, ref_codes, use_ref_codes,
+                           max_new_frames, sampling):
+        """One audio iterator per text chunk through the stream scheduler.
+
+        Chunk ``i+1`` is submitted the moment chunk ``i``'s last frame is
+        generated (its tail audio is still being decoded), so one call holds
+        one scheduler slot and the join between chunks costs a prefill, not a
+        whole chunk's wait. Abandoning the iterator cancels whatever is queued.
+        """
+        def submit(ci):
+            ph = phonemize_text_with_emotions(chunks[ci])
+            return sched.submit(
+                phonemes=ph, speaker_emb=speaker_emb, ref_codes=ref_codes,
+                use_ref_codes=use_ref_codes,
+                max_new_frames=min(max_new_frames, max_expected_frames(ph)), **sampling,
+            )
+
+        state = {"next": None}
+
+        def audio_of(handle, ci):
+            nxt = None
+            try:
+                for sub in handle:
+                    if nxt is None and ci + 1 < len(chunks) and handle.gen_done.is_set():
+                        nxt = submit(ci + 1)
+                    yield sub
+                if nxt is None and ci + 1 < len(chunks):
+                    nxt = submit(ci + 1)
+            finally:
+                handle.close()
+                state["next"] = nxt
+
+        if not chunks:
+            return
+        handle = submit(0)
+        try:
+            for ci in range(len(chunks)):
+                state["next"] = None
+                yield audio_of(handle, ci)
+                handle = state["next"]
+                if handle is None and ci + 1 < len(chunks):
+                    handle = submit(ci + 1)
+        finally:
+            for h in (handle, state["next"]):
+                if h is not None:
+                    h.close()
 
     def infer_batch(
         self,
@@ -673,5 +765,8 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         return results
 
     def close(self) -> None:
+        if self._stream_sched is not None:
+            self._stream_sched.close()
+            self._stream_sched = None
         self.engine = None
         self._batch_engine = None

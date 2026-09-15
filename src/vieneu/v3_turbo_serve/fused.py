@@ -69,15 +69,26 @@ class GpuRepHistory:
         self.counts = torch.zeros(B, n_vq, vocab, dtype=torch.int32, device=device)
         self.ring = torch.zeros(B, n_vq, max(self.window, 1), dtype=torch.long, device=device)
         self.frame = torch.zeros((), dtype=torch.long, device=device)
+        # Frame at which each row's history began: a row that joins a running
+        # batch (stream.py) must not evict ring slots it never wrote.
+        self.start = torch.zeros(B, dtype=torch.long, device=device)
         self._ones = torch.ones(B, 1, dtype=torch.int32, device=device)
 
     def reset(self) -> None:
         self.counts.zero_()
         self.ring.zero_()
         self.frame.zero_()
+        self.start.zero_()
 
-    def penalise(self, logits: torch.Tensor, ch: int, penalty: float) -> torch.Tensor:
-        """``logits`` (B, V) float → penalised copy."""
+    def reset_rows(self, rows: torch.Tensor) -> None:
+        """Clear the history of ``rows`` (long index tensor); they start now."""
+        self.counts[rows] = 0
+        self.ring[rows] = 0
+        self.start[rows] = self.frame
+
+    def penalise(self, logits: torch.Tensor, ch: int, penalty) -> torch.Tensor:
+        """``logits`` (B, V) float → penalised copy. ``penalty`` is a float or
+        a per-row ``(B, 1)`` tensor."""
         seen = self.counts[:, ch] > 0
         bent = torch.where(logits < 0, logits * penalty, logits / penalty)
         return torch.where(seen, bent, logits)
@@ -90,7 +101,7 @@ class GpuRepHistory:
             # The code written to this slot ``window`` frames ago leaves the
             # window now — but only once the ring has actually wrapped.
             old = self.ring[:, ch].index_select(1, slot)              # (B, 1)
-            evict = (self.frame >= self.window).to(torch.int32).view(1, 1)
+            evict = ((self.frame - self.start) >= self.window).to(torch.int32).view(-1, 1)
             counts.scatter_add_(1, old, -(self._ones * evict))
             self.ring[:, ch].index_copy_(1, slot, code.view(-1, 1))
         counts.scatter_add_(1, code.view(-1, 1), self._ones)
@@ -123,6 +134,32 @@ def sample_gpu(logits: torch.Tensor, temperature: float, top_k: int, top_p: floa
     return torch.multinomial(probs, num_samples=1).squeeze(-1)
 
 
+def sample_gpu_rows(logits: torch.Tensor, temperature: torch.Tensor, top_k: torch.Tensor,
+                    top_p: torch.Tensor) -> torch.Tensor:
+    """``sample_gpu`` with per-row settings: ``temperature``/``top_p`` are
+    ``(B, 1)`` floats, ``top_k`` is ``(B, 1)`` long (``<= 0`` disables). A row
+    with ``temperature <= 0`` is greedy. Rows of a continuous batch carry their
+    own request's sampling, so nothing here is baked into the graph."""
+    V = logits.shape[-1]
+    # Dead rows of a continuous batch keep stepping on stale state; keep the
+    # multinomial below well-defined whatever they produce.
+    logits = torch.nan_to_num(logits)
+    greedy = logits.argmax(dim=-1)
+    scaled = logits / temperature.clamp(min=1e-6)
+    s_logits, s_idx = torch.sort(scaled, descending=True, dim=-1)
+    kth = s_logits.gather(1, (top_k - 1).clamp(0, V - 1))
+    kth = torch.where(top_k > 0, kth, torch.full_like(kth, float("-inf")))
+    probs = F.softmax(s_logits, dim=-1)
+    drop = probs.cumsum(dim=-1) > top_p
+    drop[..., 1:] = drop[..., :-1].clone()
+    drop[..., 0] = False
+    drop |= s_logits < kth
+    s_logits = s_logits.masked_fill(drop, float("-inf"))
+    kept = torch.full_like(scaled, float("-inf")).scatter_(-1, s_idx, s_logits)
+    sampled = torch.multinomial(F.softmax(kept, dim=-1), num_samples=1).squeeze(-1)
+    return torch.where(temperature.view(-1) <= 0, greedy, sampled)
+
+
 @torch.no_grad()
 def acoustic_frame_gpu(
     model,
@@ -133,11 +170,14 @@ def acoustic_frame_gpu(
     top_p: float,
     repetition_penalty: float,
     rep: Optional[GpuRepHistory],
+    sample_fn: Optional[Callable[[torch.Tensor, int], torch.Tensor]] = None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """One acoustic frame for B rows: ``(codes (B, n_vq), is_eos (B,))``.
 
     ``generate_frame_batched`` with the penalty on the device. Everything in
     here is a fixed sequence of device ops, so it captures into a CUDA graph.
+    ``sample_fn(logits, ch) -> codes`` replaces penalty + sampling when given
+    (the continuous batch samples each row with its own settings).
     """
     cfg = model.config
     n_vq, H = cfg.n_vq, cfg.hidden_size
@@ -150,6 +190,8 @@ def acoustic_frame_gpu(
 
     def _sample_ch(ch: int, vec: torch.Tensor) -> torch.Tensor:
         logits = model.audio_lm_heads[ch](vec).float()                            # (B, V)
+        if sample_fn is not None:
+            return sample_fn(logits, ch)
         if use_rep:
             logits = rep.penalise(logits, ch, repetition_penalty)
         code = sample_gpu(logits, temperature, top_k, top_p)
@@ -185,6 +227,13 @@ class StaticBackbone:
     writes its new token at the same cache index ``cur`` and only the mask
     differs per row. The HF modules do the arithmetic; this class only owns
     the cache, the mask and the positions, all of which update on the device.
+
+    The cache is a ring: index ``cur mod max_len``. A batch loaded with
+    ``load`` never wraps (its bucket covers prompt + frames); a continuous
+    batch (``load_row``, stream.py) runs indefinitely and relies on a row's
+    prompt + frames being shorter than ``max_len``, so the write index never
+    re-enters a live row's range. Rotary positions are per row and
+    independent of the cache index.
     """
 
     def __init__(self, model, B: int, max_len: int):
@@ -231,10 +280,30 @@ class StaticBackbone:
         self.pos.copy_((cur_pos + 1).view(-1, 1))
 
     @torch.no_grad()
+    def load_row(self, b: int, keys: List[torch.Tensor], values: List[torch.Tensor]) -> None:
+        """Put one prefilled prompt into slot ``b`` of a running batch.
+
+        ``keys[i]``/``values[i]`` are layer ``i``'s ``(n_kv, T, hd)`` for the
+        prompt's real tokens only. They land right-aligned to the write index,
+        so the row's first frame goes to ``cur`` like everyone else's; its
+        rotary positions restart at ``T``. Host-side (outside the graph).
+        """
+        T = keys[0].shape[1]
+        if T + 1 > self.max_len:
+            raise ValueError(f"prompt of {T} tokens does not fit a cache of {self.max_len}")
+        idx = torch.remainder(self.cur - T + torch.arange(T, device=self.cur.device), self.max_len)
+        for i in range(len(self.layers)):
+            self.k[i, b].index_copy_(1, idx, keys[i].to(self.k.dtype))
+            self.v[i, b].index_copy_(1, idx, values[i].to(self.v.dtype))
+        self.bias[b].fill_(float("-inf"))
+        self.bias[b, 0, 0].index_fill_(0, idx, 0.0)
+        self.pos[b] = T
+
+    @torch.no_grad()
     def step(self, x: torch.Tensor) -> torch.Tensor:
         """``x`` (B, 1, H) for the new token → last hidden (B, H). Advances the cache."""
         B, g = self.B, self.n_heads // self.n_kv
-        idx = self.cur.view(1)
+        idx = torch.remainder(self.cur, self.max_len).view(1)
         # The new token attends to itself.
         self.bias.view(B, self.max_len).index_fill_(1, idx, 0.0)
         cos, sin = self.rotary(x, self.pos)
