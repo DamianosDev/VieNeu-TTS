@@ -35,7 +35,7 @@ def check_server(base, api_key=None):
     """Fail fast with a readable message when the server is not up (or not ready)."""
     headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
     try:
-        r = requests.get(f"{base}/health", headers=headers, timeout=5)
+        r = requests.get(f"{base}/health", headers=headers, timeout=5)  # NOSONAR — --base là server do người dùng chọn (CLI)
     except requests.ConnectionError:
         raise SystemExit(
             f"Không kết nối được {base} — server chưa chạy?\n"
@@ -58,7 +58,7 @@ def stream_pcm(base, text, voice=None, sample_rate=SR, api_key=None):
     t0 = time.perf_counter()
     first = None
     buf = bytearray()
-    with requests.post(f"{base}/v1/audio/speech", json=body, headers=headers, stream=True, timeout=120) as r:
+    with requests.post(f"{base}/v1/audio/speech", json=body, headers=headers, stream=True, timeout=120) as r:  # NOSONAR — xem server_url()
         if r.status_code != 200:
             raise RuntimeError(f"{r.status_code}: {r.text}")
         for chunk in r.iter_content(chunk_size=None):
@@ -77,7 +77,7 @@ def stream_sse(base, text, voice=None, api_key=None):
     t0 = time.perf_counter()
     first = None
     buf = bytearray()
-    with requests.post(f"{base}/v1/audio/speech", json=body, headers=headers, stream=True, timeout=120) as r:
+    with requests.post(f"{base}/v1/audio/speech", json=body, headers=headers, stream=True, timeout=120) as r:  # NOSONAR — xem server_url()
         for line in r.iter_lines():
             if not line.startswith(b"data: "):
                 continue
