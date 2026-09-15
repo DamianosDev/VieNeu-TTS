@@ -30,6 +30,7 @@
 > - **Emotion / non-verbal cues** *(experimental)*: drop `[cười]`, `[thở dài]`, `[hắng giọng]` straight into the text.
 > - **Batched generation** (batch size up to 32), including a multi-speaker **Conversation** mode that batches the whole script regardless of speaker.
 > - **Instant voice cloning** from a 3–8s clip, with automatic reference denoising.
+> - **Real-time streaming + OpenAI-compatible API + Docker** — `POST /v1/audio/speech` drop-in for the OpenAI SDK / Pipecat / LiveKit; first audio in **~115 ms** and **16 concurrent streams under 200 ms** on a single RTX 3060 (32 max), CPU-only streaming too. See [§3](#docker-remote) and [docs/streaming.md](docs/streaming.md).
 >
 > Try it in the Web UI (backbone **"VieNeu-TTS-v3-Turbo"**) or the SDK (`Vieneu(mode="v3turbo")`, the default).
 
@@ -69,7 +70,7 @@
 
 1. [🦜 Installation & Web UI](#installation)
 2. [📦 Using the Python SDK](#sdk)
-3. [🐳 API Server (v2 — deprecated)](#docker-remote)
+3. [🐳 API Server & Docker](#docker-remote) — OpenAI-compatible streaming API (v3 Turbo) · legacy v2 server
 4. [🎓 Fine-tuning (LoRA)](#finetune)
 5. [🔬 Model Overview](#backbones)
 6. [🚀 Roadmap](#roadmap)
@@ -82,6 +83,7 @@
 > [!TIP]
 > **On Windows?** The fastest way to get started is the standalone installer at **[vieneu.io/#/download](https://www.vieneu.io/#/download)** — no need to install `uv` or clone the repo manually.
 > **macOS**: a similar installer is coming in an upcoming release; for now, please use the `uv sync` steps below.
+> **Docker?** Skip the steps below: `--profile api-gpu` / `api-cpu` (OpenAI-compatible streaming API) — see [§3 API Server & Docker](#docker-remote).
 
 ### Setup with `uv` (Recommended)
 `uv` is the fastest way to manage dependencies. 
@@ -193,7 +195,9 @@ for label, voice_id in voices:
 #    win). On CPU it still WORKS (no error) — just sequentially, so there's no batch
 #    gain. Batch caps at max_batch_size (default 32; tune via Vieneu(max_batch_size=64)
 #    or infer_batch(..., batch_size=64), or batch_size=1 to disable). A single long
-#    infer() also auto-batches its own chunks. Uncomment to try (GPU recommended):
+#    infer() also auto-batches its own chunks. For real-time use, infer_stream() is the
+#    streaming twin (GPU: 16 concurrent streams — see "Streaming" below). Uncomment to
+#    try (GPU recommended):
 #
 # import time
 # texts = [
@@ -212,20 +216,25 @@ for label, voice_id in voices:
 
 #### Streaming (real-time) 🔊
 
-> v3 Turbo supports **frame-level streaming**: audio starts in ~300 ms and generation stays *ahead* of playback (RTF < 1 on CPU — ~2–3× on a laptop, ~7× on Apple Silicon), so it's ideal for realtime / interactive apps. Streaming runs on the > **ONNX/CPU** engine — low first-audio latency, frame-by-frame; the GPU/PyTorch engine is built for **batch throughput**, not streaming, so pin `backend="onnx"` for realtime. Just iterate `infer_stream`:
+> v3 Turbo streams **frame by frame** on both backends. **GPU** (PyTorch): first audio in **~115 ms** and **16 concurrent streams** on one RTX 3060 (continuous batching — one CUDA graph serves every `infer_stream` call, each keeping RTF ≈ 0.5–0.6). **CPU** (ONNX): first audio in ~140 ms (int8) / ~300 ms (fp32), one stream (two with int8). Just iterate `infer_stream`:
 
 ```python
 from vieneu import Vieneu
-vieneu = Vieneu(backend="onnx")                      # force ONNX/CPU — the streaming path (int8)
-for chunk in vieneu.infer_stream("Xin chào các bạn!", voice="Minh Quân"):
+vieneu = Vieneu()                                  # GPU → PyTorch + stream scheduler; no GPU → ONNX/CPU
+for chunk in vieneu.infer_stream("Xin chào các bạn!", voice="Mai Anh"):
     play(chunk)                                   # np.float32 @ 48 kHz — play/write as it arrives
 ```
 
-A complete **FastAPI web streaming demo** is in [`apps/web_stream.py`](apps/web_stream.py):
+Calling `infer_stream` from many threads at once is the intended way to serve many listeners on a GPU (`Vieneu(max_streams=16)` sets the ceiling).
+
+An **OpenAI-compatible streaming API** (`POST /v1/audio/speech`, `pcm`/`wav`, chunked or SSE — works with the OpenAI SDK, Pipecat, LiveKit, …) is in [`apps/openai_speech.py`](apps/openai_speech.py):
 
 ```bash
-uv run python -m apps.web_stream                  # → http://127.0.0.1:8001
+uv run python -m apps.openai_speech               # → http://localhost:8000/v1/audio/speech
+docker compose -f docker/docker-compose.yml --profile api-gpu up   # or api-cpu
 ```
+
+📊 **[docs/streaming.md](docs/streaming.md)** — every measurement on an RTX 3060 (TTFA / RTF / streams vs `max_streams`), estimates for smaller GPUs, and the CPU numbers. The older browser demo is still at [`apps/web_stream.py`](apps/web_stream.py).
 
 #### Available Voices
 
@@ -351,12 +360,45 @@ Knobs: `steps` (Euler steps, 16 default; 8 ≈ 2× faster, slightly rougher — 
 
 ---
 
-## 🐳 3. API Server (v2 — deprecated) <a name="docker-remote"></a>
+## 🐳 3. API Server & Docker <a name="docker-remote"></a>
+
+### Streaming API — OpenAI-compatible (v3 Turbo, CPU or GPU)
+
+`apps/openai_speech.py` serves `POST /v1/audio/speech` exactly like OpenAI's TTS endpoint (`pcm`/`wav`, chunked body or SSE), so the **OpenAI SDK, Pipecat, LiveKit Agents, Vercel AI SDK, …** work by changing `base_url`. Audio streams as it is generated: first chunk in **~115 ms** with **16 concurrent streams** on an RTX 3060 (continuous batching), ~140–300 ms and 1–2 streams on a CPU.
+
+```bash
+uv run python -m apps.openai_speech                                  # → http://localhost:8000
+docker compose -f docker/docker-compose.yml --profile api-gpu up     # GPU container
+docker compose -f docker/docker-compose.yml --profile api-cpu up     # CPU container (torch-free)
+uv run python examples/openai_speech_client.py --bench 8             # measure TTFA / RTF on your machine
+```
+
+```python
+from openai import OpenAI
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="x")
+with client.audio.speech.with_streaming_response.create(
+    model="vieneu-v3-turbo", voice="Mai Anh", input="Xin chào!", response_format="pcm",
+) as r:
+    for chunk in r.iter_bytes(4096):   # s16le 48 kHz mono, as it is generated
+        play(chunk)
+```
+
+Endpoints: `POST /v1/audio/speech`, `GET /v1/models`, `GET /v1/voices`, `POST /v1/voices` (clone from an uploaded clip), `GET /health`. Concurrency is capped per backend (`VIENEU_MAX_STREAMS`, default 16 on GPU / 1 on CPU) with a small queue and `429` beyond it.
+
+📊 **[docs/streaming.md](docs/streaming.md)** — every measurement on an RTX 3060 (TTFA / RTF / streams vs `max_streams`), estimates for smaller GPUs, the CPU numbers, and tuning notes (e.g. the first request after the GPU idles pays +100–300 ms until it clocks up).
+
+### Web UI in Docker
+
+```bash
+docker compose -f docker/docker-compose.yml --profile gpu up   # or --profile cpu → http://localhost:7860
+```
+
+See [docs/Deploy.md](docs/Deploy.md) for production builds and images.
+
+### Legacy v2 API server (LMDeploy) — deprecated
 
 > [!WARNING]
-> **Deprecated.** This LMDeploy server and the `remote` mode only work with **VieNeu-TTS v2**, which is no longer updated. They are kept for existing deployments.
->
-> A **server release of VieNeu-TTS v3** (the full GPU model, built for API deployment) is coming soon. **v3 Turbo** is the on-device version for personal use: run it through the SDK, the [Docker Web UI](#installation), or the FastAPI streaming demo in [`apps/web_stream.py`](apps/web_stream.py) in the meantime.
+> **Deprecated.** This LMDeploy server and the `remote` mode only work with **VieNeu-TTS v2**, which is no longer updated. They are kept for existing deployments. For v3 Turbo use the streaming API above.
 
 <details>
 <summary><b>Legacy v2 server instructions (Docker + remote mode)</b></summary>

@@ -30,16 +30,46 @@
 > - **Tag cảm xúc / phi ngôn từ** *(thử nghiệm)*: chèn `[cười]`, `[thở dài]`, `[hắng giọng]` thẳng vào văn bản.
 > - **Sinh theo lô** (batch tới 32), gồm chế độ **Hội thoại** nhiều người nói batch cả kịch bản bất kể người nói.
 > - **Clone giọng tức thì** từ clip 3–8 giây, tự khử nhiễu clip mẫu.
+> - **Streaming thời gian thực + API chuẩn OpenAI + Docker** — `POST /v1/audio/speech` thay thẳng cho OpenAI SDK / Pipecat / LiveKit; chunk đầu **~115 ms**, **16 luồng đồng thời dưới 200 ms** trên một RTX 3060 (tối đa 32), máy chỉ có CPU cũng stream được. Xem [§3](#docker-remote) và [docs/streaming.vi.md](docs/streaming.vi.md).
 >
 > Dùng thử trong Web UI (backbone **"VieNeu-TTS-v3-Turbo"**) hoặc SDK (`Vieneu(mode="v3turbo")`, là mặc định).
 
-[<img width="600" height="595" alt="VieNeu-TTS Demo" src="https://github.com/user-attachments/assets/021f6671-2d7f-4635-91fb-88b2ab0ddbcd" />](https://github.com/user-attachments/assets/021f6671-2d7f-4635-91fb-88b2ab0ddbcd)
+<h3>🎬 Demos</h3>
+
+<table>
+  <tr>
+    <td align="center">
+      <b>Voice Cloning</b><br><br>
+      <video
+        src="https://github.com/user-attachments/assets/021f6671-2d7f-4635-91fb-88b2ab0ddbcd"
+        controls
+        width="100%">
+      </video>
+    </td>
+    <td align="center">
+      <b>Dubbing</b><br><br>
+      <video
+        src="https://github.com/user-attachments/assets/5888aea1-4f32-4397-9dd9-9c7b743d31bd"
+        controls
+        width="100%">
+      </video>
+    </td>
+    <td align="center">
+      <b>Dubbing / Conversation</b><br><br>
+      <video
+        src="https://github.com/user-attachments/assets/28104b78-2d55-4914-85b7-5f425a7e99da"
+        controls
+        width="100%">
+      </video>
+    </td>
+  </tr>
+</table>
 
 ## 📌 Mục lục
 
 1. [🦜 Cài đặt & Giao diện Web](#installation)
 2. [📦 Sử dụng Python SDK](#sdk)
-3. [🐳 API Server (v2 — đã ngừng)](#docker-remote)
+3. [🐳 API Server & Docker](#docker-remote) — API streaming chuẩn OpenAI (v3 Turbo) · server v2 cũ
 4. [🎓 Fine-tune (LoRA)](#finetune)
 5. [🔬 Tổng quan mô hình](#backbones)
 6. [🚀 Lộ trình phát triển](#roadmap)
@@ -88,6 +118,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    uv run vieneu-web
    ```
    Truy cập giao diện tại `http://127.0.0.1:7860`.
+
+> [!TIP]
+> **Dùng Docker?** Bỏ qua các bước trên: `--profile api-gpu` / `api-cpu` (API streaming chuẩn OpenAI) — xem [§3 API Server & Docker](#docker-remote).
 
 ### Docker (Web UI, chỉ v3 Turbo + v3 Nano)
 
@@ -163,7 +196,9 @@ for label, voice_id in voices:
 #    Trên GPU CUDA, các chunk của mọi text dùng chung mỗi bước forward (throughput cao
 #    hơn nhiều); trên CPU vẫn CHẠY ĐƯỢC (không lỗi), chỉ là tuần tự. Batch tối đa
 #    max_batch_size (mặc định 32; hoặc infer_batch(..., batch_size=64); batch_size=1 để
-#    tắt). Một infer() cho text dài cũng tự batch các chunk. Bỏ comment để thử (nên dùng GPU):
+#    tắt). Một infer() cho text dài cũng tự batch các chunk. Cần realtime thì dùng
+#    infer_stream() — bản streaming cùng API (GPU: 16 luồng đồng thời, xem mục
+#    "Streaming" bên dưới). Bỏ comment để thử (nên dùng GPU):
 #
 # import time
 # texts = [
@@ -182,30 +217,25 @@ for label, voice_id in voices:
 
 ### Streaming thời gian thực 🔊
 
-v3 Turbo hỗ trợ **streaming theo frame**: audio ra sau ~300 ms và generator luôn *chạy vượt* player (RTF < 1 trên CPU — ~2–3× trên laptop, ~7× trên Apple Silicon), rất hợp cho ứng dụng realtime / tương tác. Streaming chạy trên engine **ONNX/CPU** — độ trễ audio đầu thấp, theo từng frame; engine GPU/PyTorch sinh ra để **batch throughput**, không dành cho streaming, nên hãy ép `backend="onnx"` cho realtime. Chỉ cần lặp `infer_stream`:
+v3 Turbo stream **theo từng frame** trên cả hai backend. **GPU** (PyTorch): audio đầu sau **~115 ms**, **16 luồng đồng thời** trên một RTX 3060 (continuous batching — một CUDA graph phục vụ mọi lời gọi `infer_stream`, mỗi luồng giữ RTF ≈ 0,5–0,6). **CPU** (ONNX): audio đầu ~140 ms (int8) / ~300 ms (fp32), một luồng (int8: hai). Chỉ cần lặp `infer_stream`:
 
 ```python
 from vieneu import Vieneu
-vieneu = Vieneu(backend="onnx")                      # ép ONNX/CPU — đường dành cho streaming (int8)
-for chunk in vieneu.infer_stream("Xin chào các bạn!", voice="Minh Quân"):
+vieneu = Vieneu()                                  # có GPU → PyTorch + scheduler stream; không → ONNX/CPU
+for chunk in vieneu.infer_stream("Xin chào các bạn!", voice="Mai Anh"):
     play(chunk)                                   # np.float32 @ 48 kHz — phát/ghi ngay khi có
 ```
 
-Bản demo **web streaming FastAPI** đầy đủ (player trên trình duyệt, hiện time-to-first-audio, dark mode) nằm ở [`apps/web_stream.py`](apps/web_stream.py):
+Gọi `infer_stream` từ nhiều thread cùng lúc chính là cách phục vụ nhiều người nghe trên GPU (`Vieneu(max_streams=16)` đặt trần).
+
+**API streaming chuẩn OpenAI** (`POST /v1/audio/speech`, `pcm`/`wav`, chunked hoặc SSE — dùng được với OpenAI SDK, Pipecat, LiveKit, …) nằm ở [`apps/openai_speech.py`](apps/openai_speech.py):
 
 ```bash
-uv run python -m apps.web_stream                  # → http://localhost:8001
+uv run python -m apps.openai_speech               # → http://localhost:8000/v1/audio/speech
+docker compose -f docker/docker-compose.yml --profile api-gpu up   # hoặc api-cpu
 ```
 
-> Engine chia chunk thích ứng (chunk đầu ~320 ms cho độ trễ thấp, rồi phình tới ~2 s khi đã dư lead). Vì RTF < 1 nên lead chỉ tăng dần → player prebuffer ~300 ms là dư, không underrun.
-
-#### Giọng có sẵn
-
-v3 Turbo đi kèm **23 giọng dựng sẵn** phủ **3 miền** (Bắc, Trung, Nam), đủ giới tính và tính cách đọc:
-
-- **Miền Bắc**: Minh Quân *(mặc định)*, Minh Đức, Phạm Tuyên, Trúc Ly, Mai Anh, Quỳnh Anh, Xuân Vĩnh, Anh Khôi, Mạnh Dũng, …
-- **Miền Trung**: Quang Sơn, Ngọc Trân
-- **Miền Nam**: Adam, Thái Sơn, Thùy Dung, Mỹ Duyên, …
+📊 **[docs/streaming.vi.md](docs/streaming.vi.md)** — toàn bộ số đo trên RTX 3060 (TTFA / RTF / số luồng theo `max_streams`), dự đoán cho GPU nhỏ hơn, và số đo CPU. Bản demo trình duyệt cũ vẫn ở [`apps/web_stream.py`](apps/web_stream.py).
 
 ### Phong cách đọc — **đã bỏ (deprecated)** ⚠️
 
@@ -322,12 +352,45 @@ Tham số: `steps` (số bước Euler, mặc định 16; 8 nhanh gấp ~2, hơi
 
 ---
 
-## 🐳 3. API Server (v2 — đã ngừng) <a name="docker-remote"></a>
+## 🐳 3. API Server & Docker <a name="docker-remote"></a>
+
+### API streaming — chuẩn OpenAI (v3 Turbo, CPU hoặc GPU)
+
+`apps/openai_speech.py` phục vụ `POST /v1/audio/speech` giống hệt endpoint TTS của OpenAI (`pcm`/`wav`, body chunked hoặc SSE), nên **OpenAI SDK, Pipecat, LiveKit Agents, Vercel AI SDK, …** dùng được chỉ bằng đổi `base_url`. Audio phát ra ngay khi sinh: chunk đầu **~115 ms**, **16 luồng đồng thời** trên RTX 3060 (continuous batching); trên CPU ~140–300 ms và 1–2 luồng.
+
+```bash
+uv run python -m apps.openai_speech                                  # → http://localhost:8000
+docker compose -f docker/docker-compose.yml --profile api-gpu up     # container GPU
+docker compose -f docker/docker-compose.yml --profile api-cpu up     # container CPU (không torch)
+uv run python examples/openai_speech_client.py --bench 8             # tự đo TTFA / RTF trên máy bạn
+```
+
+```python
+from openai import OpenAI
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="x")
+with client.audio.speech.with_streaming_response.create(
+    model="vieneu-v3-turbo", voice="Mai Anh", input="Xin chào!", response_format="pcm",
+) as r:
+    for chunk in r.iter_bytes(4096):   # s16le 48 kHz mono, tới đâu phát tới đó
+        play(chunk)
+```
+
+Endpoint: `POST /v1/audio/speech`, `GET /v1/models`, `GET /v1/voices`, `POST /v1/voices` (nhân bản giọng từ clip upload), `GET /health`. Số luồng giới hạn theo backend (`VIENEU_MAX_STREAMS`, mặc định 16 trên GPU / 1 trên CPU), có hàng đợi nhỏ, quá thì `429`.
+
+📊 **[docs/streaming.vi.md](docs/streaming.vi.md)** — toàn bộ số đo trên RTX 3060 (TTFA / RTF / số luồng theo `max_streams`), dự đoán cho GPU nhỏ hơn, số đo CPU, và các lưu ý tinh chỉnh (ví dụ request đầu tiên sau khi GPU rỗi chậm thêm 100–300 ms vì GPU hạ xung).
+
+### Web UI trong Docker
+
+```bash
+docker compose -f docker/docker-compose.yml --profile gpu up   # hoặc --profile cpu → http://localhost:7860
+```
+
+Xem [docs/Deploy.vi.md](docs/Deploy.vi.md) cho build production và image.
+
+### Server API v2 cũ (LMDeploy) — đã ngừng
 
 > [!WARNING]
-> **Đã ngừng cập nhật.** Server LMDeploy và chế độ `remote` này chỉ chạy với **VieNeu-TTS v2**, bản v2 không còn được cập nhật. Phần này giữ lại cho các hệ thống đang chạy.
->
-> **Bản server của VieNeu-TTS v3** (model GPU đầy đủ, dành cho deploy API) sẽ ra mắt trong thời gian tới. **v3 Turbo** là bản chạy trên thiết bị cho người dùng cá nhân: trong lúc chờ, dùng qua SDK, [Docker Web UI](#installation), hoặc demo streaming FastAPI ở [`apps/web_stream.py`](apps/web_stream.py).
+> **Đã ngừng cập nhật.** Server LMDeploy và chế độ `remote` này chỉ chạy với **VieNeu-TTS v2**, bản v2 không còn được cập nhật. Phần này giữ lại cho các hệ thống đang chạy. Với v3 Turbo hãy dùng API streaming ở trên.
 
 <details>
 <summary><b>Hướng dẫn server v2 cũ (Docker + chế độ remote)</b></summary>
