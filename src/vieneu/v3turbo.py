@@ -173,6 +173,13 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         self.default_style = "tu_nhien"
         self._preset_voices: dict = {}
         self._default_voice: Optional[str] = None
+        # Enrolled references, keyed by clip CONTENT (sha1 of the file bytes) +
+        # enrol flags. Enrolling = denoise + x-vector + codec encode ≈ 2.7 s at
+        # 5-10 cores on a 6-core CPU (measured 2026-09-15), and a document's
+        # chunks / repeated requests reuse the same clip. Content-keyed so a
+        # fresh temp path per upload still hits.
+        from collections import OrderedDict
+        self._ref_cache: "OrderedDict[tuple, Tuple[np.ndarray, Optional[np.ndarray]]]" = OrderedDict()
         self.backbone_repo = backbone_repo
         self._load_v3_voices()
         self._load_repo_voices(backbone_repo)
@@ -260,19 +267,40 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
             raise ValueError(f"Voice '{name}' not found. Available: {list(self._preset_voices)}")
         return self._preset_voices[name]
 
-    def encode_reference(self, ref_audio: Union[str, Path], denoise: bool = True) -> Tuple[np.ndarray, np.ndarray]:
-        """Enroll a voice from a wav → ``(speaker_emb, ref_codes)``.
-        """
+    REF_CACHE_MAX = 32   # distinct clips kept (LRU); each entry is a few hundred KB
+
+    def _enroll_reference(self, ref_audio: Union[str, Path], denoise: bool, use_ref_codes: bool
+                          ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+        """Trim → engine.prepare_reference, memoised on the clip's content."""
+        import hashlib
         import os
+        key = None
+        try:
+            key = (hashlib.sha1(Path(ref_audio).read_bytes()).hexdigest(), bool(denoise), bool(use_ref_codes))
+        except OSError:
+            pass   # unreadable path: let the engine raise its own error below
+        if key is not None and key in self._ref_cache:
+            self._ref_cache.move_to_end(key)
+            return self._ref_cache[key]
         clean_ref = self._preclean_reference_audio(ref_audio)
         try:
-            return self.engine.prepare_reference(str(clean_ref), denoise=denoise, use_ref_codes=True)
+            out = self.engine.prepare_reference(str(clean_ref), denoise=denoise, use_ref_codes=use_ref_codes)
         finally:
             if clean_ref and Path(clean_ref).resolve() != Path(ref_audio).resolve():
                 try:
                     os.remove(clean_ref)
                 except Exception:
                     pass
+        if key is not None:
+            self._ref_cache[key] = out
+            while len(self._ref_cache) > self.REF_CACHE_MAX:
+                self._ref_cache.popitem(last=False)
+        return out
+
+    def encode_reference(self, ref_audio: Union[str, Path], denoise: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+        """Enroll a voice from a wav → ``(speaker_emb, ref_codes)``.
+        """
+        return self._enroll_reference(ref_audio, denoise=denoise, use_ref_codes=True)
 
     def denoise(self, ref_audio: Union[str, Path], out_path: Optional[Union[str, Path]] = None,
                 max_seconds: Optional[float] = None) -> Tuple[np.ndarray, int]:
@@ -370,16 +398,7 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         Precedence: cloned ``ref_audio`` → preset ``voice`` (name or dict) → default preset.
         """
         if ref_audio is not None:
-            import os
-            clean_ref = self._preclean_reference_audio(ref_audio)
-            try:
-                return self.engine.prepare_reference(str(clean_ref), denoise=denoise, use_ref_codes=use_ref_codes)
-            finally:
-                if clean_ref and Path(clean_ref).resolve() != Path(ref_audio).resolve():
-                    try:
-                        os.remove(clean_ref)
-                    except Exception:
-                        pass
+            return self._enroll_reference(ref_audio, denoise=denoise, use_ref_codes=use_ref_codes)
         preset = None
         if isinstance(voice, str):
             preset = self._preset_voices.get(voice)
