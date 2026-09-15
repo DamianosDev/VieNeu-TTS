@@ -230,8 +230,10 @@ Calling `infer_stream` from many threads at once is the intended way to serve ma
 An **OpenAI-compatible streaming API** (`POST /v1/audio/speech`, `pcm`/`wav`, chunked or SSE — works with the OpenAI SDK, Pipecat, LiveKit, …) is in [`apps/openai_speech.py`](apps/openai_speech.py):
 
 ```bash
-uv run python -m apps.openai_speech               # → http://localhost:8000/v1/audio/speech
-docker compose -f docker/docker-compose.yml --profile api-gpu up   # or api-cpu
+# Pick ONE of these — all serve http://localhost:8000/v1/audio/speech
+uv run python -m apps.openai_speech                                  # from the repo (auto-detects GPU/CPU)
+docker compose -f docker/docker-compose.yml --profile api-gpu up     # or: Docker, GPU
+docker compose -f docker/docker-compose.yml --profile api-cpu up     # or: Docker, CPU only
 ```
 
 📊 **[docs/streaming.md](docs/streaming.md)** — every measurement on an RTX 3060 (TTFA / RTF / streams vs `max_streams`), estimates for smaller GPUs, and the CPU numbers. The older browser demo is still at [`apps/web_stream.py`](apps/web_stream.py).
@@ -367,10 +369,13 @@ Knobs: `steps` (Euler steps, 16 default; 8 ≈ 2× faster, slightly rougher — 
 `apps/openai_speech.py` serves `POST /v1/audio/speech` exactly like OpenAI's TTS endpoint (`pcm`/`wav`, chunked body or SSE), so the **OpenAI SDK, Pipecat, LiveKit Agents, Vercel AI SDK, …** work by changing `base_url`. Audio streams as it is generated: first chunk in **~115 ms** with **16 concurrent streams** on an RTX 3060 (continuous batching), ~140–300 ms and 1–2 streams on a CPU.
 
 ```bash
-uv run python -m apps.openai_speech                                  # → http://localhost:8000
-docker compose -f docker/docker-compose.yml --profile api-gpu up     # GPU container
-docker compose -f docker/docker-compose.yml --profile api-cpu up     # CPU container (torch-free)
-uv run python examples/openai_speech_client.py --bench 8             # measure TTFA / RTF on your machine
+# Start the server — pick ONE of these three (all listen on http://localhost:8000):
+uv run python -m apps.openai_speech                                  # from the repo (auto-detects GPU/CPU)
+docker compose -f docker/docker-compose.yml --profile api-gpu up     # or: Docker, GPU container
+docker compose -f docker/docker-compose.yml --profile api-cpu up     # or: Docker, CPU container (torch-free)
+
+# Then, in another terminal: measure TTFA / RTF on your machine
+uv run python examples/openai_speech_client.py --bench 8
 ```
 
 ```python

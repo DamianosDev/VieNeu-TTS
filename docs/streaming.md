@@ -36,16 +36,20 @@ Both paths sit behind **the same API**; the server picks the backend (`VIENEU_BA
 
 ## Running the server
 
-```bash
-# GPU (the default when CUDA is present)
-uv run python -m apps.openai_speech                      # http://0.0.0.0:8000
+Pick **one** of the following — every variant listens on `http://0.0.0.0:8000`:
 
-# Force CPU, int8 (~2x faster than fp32; needs a CPU with VNNI — see the CPU section)
+```bash
+# (a) From the repo — GPU when CUDA is present, otherwise CPU
+uv run python -m apps.openai_speech
+
+# (b) From the repo, forcing CPU int8 (~2x faster than fp32; needs a CPU with VNNI — see the CPU section)
 VIENEU_BACKEND=onnx VIENEU_PRECISION=int8 uv run python -m apps.openai_speech
 
-# Docker
-docker compose -f docker/docker-compose.yml --profile api-gpu up   # GPU
-docker compose -f docker/docker-compose.yml --profile api-cpu up   # CPU
+# (c) Docker, GPU container
+docker compose -f docker/docker-compose.yml --profile api-gpu up
+
+# (d) Docker, CPU-only container
+docker compose -f docker/docker-compose.yml --profile api-cpu up
 ```
 
 Environment:

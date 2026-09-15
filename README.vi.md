@@ -231,8 +231,10 @@ Gọi `infer_stream` từ nhiều thread cùng lúc chính là cách phục vụ
 **API streaming chuẩn OpenAI** (`POST /v1/audio/speech`, `pcm`/`wav`, chunked hoặc SSE — dùng được với OpenAI SDK, Pipecat, LiveKit, …) nằm ở [`apps/openai_speech.py`](apps/openai_speech.py):
 
 ```bash
-uv run python -m apps.openai_speech               # → http://localhost:8000/v1/audio/speech
-docker compose -f docker/docker-compose.yml --profile api-gpu up   # hoặc api-cpu
+# Chọn MỘT trong ba cách — đều phục vụ http://localhost:8000/v1/audio/speech
+uv run python -m apps.openai_speech                                  # chạy từ repo (tự nhận GPU/CPU)
+docker compose -f docker/docker-compose.yml --profile api-gpu up     # hoặc: Docker, GPU
+docker compose -f docker/docker-compose.yml --profile api-cpu up     # hoặc: Docker, chỉ CPU
 ```
 
 📊 **[docs/streaming.vi.md](docs/streaming.vi.md)** — toàn bộ số đo trên RTX 3060 (TTFA / RTF / số luồng theo `max_streams`), dự đoán cho GPU nhỏ hơn, và số đo CPU. Bản demo trình duyệt cũ vẫn ở [`apps/web_stream.py`](apps/web_stream.py).
@@ -359,10 +361,13 @@ Tham số: `steps` (số bước Euler, mặc định 16; 8 nhanh gấp ~2, hơi
 `apps/openai_speech.py` phục vụ `POST /v1/audio/speech` giống hệt endpoint TTS của OpenAI (`pcm`/`wav`, body chunked hoặc SSE), nên **OpenAI SDK, Pipecat, LiveKit Agents, Vercel AI SDK, …** dùng được chỉ bằng đổi `base_url`. Audio phát ra ngay khi sinh: chunk đầu **~115 ms**, **16 luồng đồng thời** trên RTX 3060 (continuous batching); trên CPU ~140–300 ms và 1–2 luồng.
 
 ```bash
-uv run python -m apps.openai_speech                                  # → http://localhost:8000
-docker compose -f docker/docker-compose.yml --profile api-gpu up     # container GPU
-docker compose -f docker/docker-compose.yml --profile api-cpu up     # container CPU (không torch)
-uv run python examples/openai_speech_client.py --bench 8             # tự đo TTFA / RTF trên máy bạn
+# Bật server — chọn MỘT trong ba cách (đều nghe ở http://localhost:8000):
+uv run python -m apps.openai_speech                                  # chạy từ repo (tự nhận GPU/CPU)
+docker compose -f docker/docker-compose.yml --profile api-gpu up     # hoặc: Docker, container GPU
+docker compose -f docker/docker-compose.yml --profile api-cpu up     # hoặc: Docker, container CPU (không torch)
+
+# Rồi ở terminal khác: tự đo TTFA / RTF trên máy bạn
+uv run python examples/openai_speech_client.py --bench 8
 ```
 
 ```python

@@ -36,16 +36,20 @@ Cả hai đường dùng **cùng một API**; server tự chọn backend (`VIENE
 
 ## Chạy server
 
-```bash
-# GPU (mặc định nếu máy có CUDA)
-uv run python -m apps.openai_speech                      # http://0.0.0.0:8000
+Chọn **một** trong các cách sau — cách nào cũng nghe ở `http://0.0.0.0:8000`:
 
-# Ép CPU, int8 (nhanh ~2x fp32, cần CPU có VNNI — xem phần CPU)
+```bash
+# (a) Chạy từ repo — có CUDA thì GPU, không thì CPU
+uv run python -m apps.openai_speech
+
+# (b) Chạy từ repo, ép CPU int8 (nhanh ~2x fp32, cần CPU có VNNI — xem phần CPU)
 VIENEU_BACKEND=onnx VIENEU_PRECISION=int8 uv run python -m apps.openai_speech
 
-# Docker
-docker compose -f docker/docker-compose.yml --profile api-gpu up   # GPU
-docker compose -f docker/docker-compose.yml --profile api-cpu up   # CPU
+# (c) Docker, container GPU
+docker compose -f docker/docker-compose.yml --profile api-gpu up
+
+# (d) Docker, container chỉ CPU
+docker compose -f docker/docker-compose.yml --profile api-cpu up
 ```
 
 Biến môi trường:
