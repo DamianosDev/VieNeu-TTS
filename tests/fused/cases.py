@@ -101,3 +101,24 @@ def test_static_backbone_matches_hf_in_fp32():
         h_ref, cache, mask, pos = eng.bb.decode_step(x, cache, mask, pos)
         h_new = sb.step(x)
         assert torch.allclose(h_ref, h_new, atol=1e-4, rtol=1e-4)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="needs CUDA")
+def test_frame_hook_stops_a_running_batch_within_frames():
+    """Một server dừng giữa chừng bằng cách raise từ ``frame_hook`` — phải ăn
+    sau vài khung, không phải sau cả batch."""
+    from vieneu import Vieneu
+
+    tts = Vieneu(mode="v3turbo", device="cuda", backend="pytorch")
+    eng = tts._get_batch_engine()
+    calls = []
+
+    def hook():
+        calls.append(1)
+        if len(calls) == 3:
+            raise RuntimeError("cancelled")
+
+    eng.frame_hook = hook
+    with pytest.raises(RuntimeError, match="cancelled"):
+        tts.infer_batch(["Xin chào các bạn, hôm nay trời đẹp quá."])  # giọng mặc định
+    assert len(calls) == 3

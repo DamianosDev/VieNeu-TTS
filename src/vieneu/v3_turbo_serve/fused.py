@@ -44,7 +44,7 @@ path already differs from the single path.
 from __future__ import annotations
 
 import math
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -352,12 +352,15 @@ class FusedFrame:
 
     @torch.no_grad()
     def run(self, h0: torch.Tensor, cache, attn_mask, cur_pos, caps: List[int],
-            spk: Optional[torch.Tensor], max_new_frames: int) -> List[torch.Tensor]:
+            spk: Optional[torch.Tensor], max_new_frames: int,
+            on_frame: Optional[Callable[[], None]] = None) -> List[torch.Tensor]:
         """Generate for the rows loaded into the static buffers.
 
         ``h0`` (B, H) is the prefill's last hidden; ``cache``/``attn_mask``/
         ``cur_pos`` come from ``BatchedBackbone.prefill``; ``caps[b]`` is row
-        ``b``'s own frame cap (already ≤ ``max_new_frames``). Returns per-row
+        ``b``'s own frame cap (already ≤ ``max_new_frames``). ``on_frame`` is
+        called before every frame — a server's cancel check, which used to
+        hang off the backbone step this loop no longer calls. Returns per-row
         codes ``(T_b, n_vq)`` on the device.
         """
         B = self.B
@@ -375,6 +378,8 @@ class FusedFrame:
                 raise ValueError("this model needs a speaker anchor for every row")
             self.spk.copy_(spk.to(self.spk.dtype))
         for _ in range(min(int(max_new_frames), self.max_frames)):
+            if on_frame is not None:
+                on_frame()
             self.graph.replay()
             if bool(self.all_done):
                 break

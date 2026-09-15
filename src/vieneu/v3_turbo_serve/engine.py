@@ -60,6 +60,9 @@ class V3TurboBatchEngine:
         # VIENEU_FUSED_FRAME=0 falls back to the plain per-op loop.
         self._fused = {}
         self.use_fused = os.environ.get("VIENEU_FUSED_FRAME", "1") != "0"
+        # Called once per generated frame (both loops). A server sets it to
+        # its cancel check; raising from it stops the batch within a frame.
+        self.frame_hook = None
 
     def _get_graph(self, B, temperature, top_k, top_p):
         key = (B, round(temperature, 4), top_k, round(top_p, 4))
@@ -247,6 +250,8 @@ class V3TurboBatchEngine:
         codes_per_req: List[List[torch.Tensor]] = [[] for _ in range(B)]
 
         for _ in range(max_new_frames):
+            if self.frame_hook is not None:
+                self.frame_hook()
             if graphed is not None:
                 codes, is_eos = graphed.run(h)               # acoustic frame via CUDA graph
             else:
@@ -348,5 +353,5 @@ class V3TurboBatchEngine:
             )
             self._fused[key] = fused
         h, cache, mask, pos = self.bb.prefill(embeds_p)
-        codes = fused.run(h, cache, mask, pos, caps, spk_p, max_new_frames)
+        codes = fused.run(h, cache, mask, pos, caps, spk_p, max_new_frames, on_frame=self.frame_hook)
         return codes[:B]
