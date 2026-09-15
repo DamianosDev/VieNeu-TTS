@@ -377,7 +377,7 @@ uv run python examples/openai_speech_client.py --bench 8             # measure T
 from openai import OpenAI
 client = OpenAI(base_url="http://localhost:8000/v1", api_key="x")
 with client.audio.speech.with_streaming_response.create(
-    model="vieneu-v3-turbo", voice="Mai Anh", input="Xin chào!", response_format="pcm",
+    model="vieneu-v3-turbo", voice="Mai Anh", input="Xin chào! Đây là chế độ streaming của VieNeu, phát tới đâu nghe tới đó.", response_format="pcm",
 ) as r:
     for chunk in r.iter_bytes(4096):   # s16le 48 kHz mono, as it is generated
         play(chunk)

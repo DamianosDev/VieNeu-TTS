@@ -115,7 +115,7 @@ Python, SDK OpenAI:
 from openai import OpenAI
 client = OpenAI(base_url="http://localhost:8000/v1", api_key="x")   # api_key = VIENEU_API_KEY nếu có đặt
 with client.audio.speech.with_streaming_response.create(
-    model="vieneu-v3-turbo", voice="Mai Anh", input="Xin chào!", response_format="pcm",
+    model="vieneu-v3-turbo", voice="Mai Anh", input="Xin chào! Đây là chế độ streaming của VieNeu, phát tới đâu nghe tới đó.", response_format="pcm",
 ) as r:
     for chunk in r.iter_bytes(4096):       # s16le 48 kHz mono
         player.write(chunk)

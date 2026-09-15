@@ -12,7 +12,7 @@ generated — the first bytes leave ~115 ms after the request on an RTX 3060,
     from openai import OpenAI
     client = OpenAI(base_url="http://127.0.0.1:8000/v1", api_key="x")
     with client.audio.speech.with_streaming_response.create(
-        model="vieneu-v3-turbo", voice="Mai Anh", input="Xin chào!",
+        model="vieneu-v3-turbo", voice="Mai Anh", input="Xin chào! Đây là chế độ streaming của VieNeu, phát tới đâu nghe tới đó.",
         response_format="pcm",              # 48 kHz s16le mono (see `sample_rate` below)
     ) as r:
         for chunk in r.iter_bytes(4096):
