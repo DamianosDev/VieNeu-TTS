@@ -113,10 +113,33 @@ def test_forced_word_cut_never_splits_pair_even_without_natural_cut():
         assert (_conn_key(lt[-1]), _conn_key(rt[0])) not in _CONN_PAIRS
 
 def test_forced_word_cut_connector_too_early_is_ignored():
-    """Từ nối làm mảnh trái < max_chars//2 thì bỏ qua, cắt sát trần như cũ."""
+    """Từ nối làm mảnh trái < max_chars//3 thì bỏ qua, cắt theo từ như thường."""
     sent = "x" * 10 + " và " + "y" * 30
     chunks = pack_sentences_into_chunks([sent], max_chars=40)
     assert chunks[0] == "x" * 10 + " và"
+
+
+def test_forced_word_cut_is_balanced_not_greedy():
+    """304 ký tự không thành 251 + 53: cần 2 mảnh thì mỗi mảnh nhắm ~152 và
+    từ nối gần đích nhất thắng, dù mảnh trái chưa tới nửa trần."""
+    left = "thái lan nâng cấp quan hệ lên đối tác chiến lược toàn diện ngày mười sáu tháng năm hai nghìn không trăm hai mươi lăm"
+    right = "và ký chương trình hành động triển khai quan hệ đối tác chiến lược toàn diện giai đoạn hai nghìn không trăm hai mươi sáu đến hai nghìn không trăm ba mươi mốt ngày hai mươi tám tháng năm"
+    chunks = pack_sentences_into_chunks([left + " " + right], max_chars=256)
+    assert chunks == [left, right]
+
+
+def test_forced_word_cut_never_splits_a_number():
+    """Không có từ nối: điểm cắt cân bằng cũng không được rơi giữa các từ đọc số."""
+    words = ["x" * 12] * 6 + "hai nghìn không trăm ba mươi mốt".split() + ["y" * 12] * 6
+    sent = " ".join(words)
+    from vieneu_utils.core_utils import _tail_slack
+    cap = len(sent) // 2 + 8
+    chunks = pack_sentences_into_chunks([sent], max_chars=cap)
+    assert " ".join(chunks).split() == words
+    for c in chunks:
+        assert len(c) <= cap + _tail_slack(cap)      # trần tương đối
+    joined_number = any("hai nghìn không trăm ba mươi mốt" in c for c in chunks)
+    assert joined_number, chunks
 
 def test_forced_word_cut_no_connector_falls_back():
     """Không có từ nối: giữ nguyên hành vi cắt theo từ, không mất chữ."""

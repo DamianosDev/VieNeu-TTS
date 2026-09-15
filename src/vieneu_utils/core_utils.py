@@ -334,26 +334,6 @@ def _conn_key(token: str) -> str:
     return token.strip(_CONN_STRIP).lower()
 
 
-def _natural_cut(words: List[str], start: int, end: int, min_left: int) -> Optional[int]:
-    """Tìm ``j`` trong ``(start, end)`` sao cho cắt TRƯỚC ``words[j]`` rơi đúng
-    từ nối. Quét lùi từ sát trần về (ưu tiên chunk đầy nhất), dừng khi mảnh trái
-    ngắn hơn ``min_left``. Trả ``None`` nếu không có điểm cắt tự nhiên."""
-    left = sum(len(w) for w in words[start:end]) + (end - start - 1)
-    for j in range(end - 1, start, -1):
-        left -= len(words[j]) + 1        # độ dài mảnh trái nếu cắt trước words[j]
-        if left < min_left:
-            return None
-        key, prev = _conn_key(words[j]), _conn_key(words[j - 1])
-        if (prev, key) in _CONN_PAIRS or prev in _CONN_WORDS:
-            # Giữa một cặp ("sau | khi") hoặc ngay sau từ nối khác ("và | sau
-            # đó" bỏ rơi "và" cuối mảnh trái) — điểm đúng là j-1, quét tiếp.
-            continue
-        nxt = _conn_key(words[j + 1]) if j + 1 < len(words) else ""
-        if key in _CONN_WORDS or (key, nxt) in _CONN_PAIRS:
-            return j
-    return None
-
-
 # Trần ký tự của chunk là TƯƠNG ĐỐI, không cứng: phần dư sau điểm cắt mà quá
 # ngắn (<= slack ký tự, tính cả dấu câu liền) thì gộp luôn vào chunk trước dù
 # vượt trần. Ví dụ trần 128: "...tiêu diệt sinh lực đối" | "phương." -> mảnh
@@ -375,45 +355,93 @@ def _fits(cur_len: int, add_len: int, max_chars: int) -> bool:
     return total <= max_chars or (add_len <= slack and total <= max_chars + slack)
 
 
+# Từ mà normalizer dùng để đọc số. Cắt giữa hai từ này là cắt ngang một con số
+# ("…đến hai nghìn | không trăm ba mươi mốt"). "năm"/"ba"/"tư" cũng là từ thường —
+# chặn thừa một chút còn hơn xẻ đôi năm 2031.
+_NUMBER_WORDS = frozenset(
+    "không một mốt hai ba bốn tư năm lăm sáu bảy tám chín mười mươi trăm nghìn ngàn "
+    "triệu tỷ tỉ linh lẻ phẩy chấm".split()
+)
+
+
+def _is_number_word(token: str) -> bool:
+    key = _conn_key(token)
+    return key in _NUMBER_WORDS or key.isdigit()
+
+
+def _span_len(words: List[str], start: int, end: int) -> int:
+    """Độ dài ``" ".join(words[start:end])``."""
+    if end <= start:
+        return 0
+    return sum(len(w) for w in words[start:end]) + (end - start - 1)
+
+
+def _balanced_cut(words: List[str], start: int, target: float, max_chars: int, min_left: int) -> int:
+    """Chọn ``end`` sao cho ``words[start:end]`` <= ``max_chars`` và dài GẦN
+    ``target`` nhất. Ưu tiên cắt trước từ nối (``_CONN_WORDS``/``_CONN_PAIRS``,
+    mảnh trái >= ``min_left``); không có thì ranh giới từ gần đích nhất, miễn
+    không lọt giữa cặp từ nối và không xẻ đôi một con số. Không còn chỗ hợp lệ
+    (một token khổng lồ, chuỗi cặp chồng lấn) thì cắt sát trần, lùi khỏi cặp."""
+    best_nat = best_plain = None
+    end_cap = start + 1
+    for j in range(start + 1, len(words)):
+        left = _span_len(words, start, j)
+        if left > max_chars:
+            break
+        end_cap = j
+        key, prev = _conn_key(words[j]), _conn_key(words[j - 1])
+        nxt = _conn_key(words[j + 1]) if j + 1 < len(words) else ""
+        d = abs(left - target)
+        inside_pair = (prev, key) in _CONN_PAIRS
+        natural = (key in _CONN_WORDS or (key, nxt) in _CONN_PAIRS) and prev not in _CONN_WORDS
+        if natural and not inside_pair and left >= min_left and (best_nat is None or d < best_nat[0]):
+            best_nat = (d, j)
+        plain_ok = not inside_pair and not (_is_number_word(words[j - 1]) and _is_number_word(words[j]))
+        if plain_ok and (best_plain is None or d < best_plain[0]):
+            best_plain = (d, j)
+    if best_nat is not None:
+        return best_nat[1]
+    if best_plain is not None:
+        return best_plain[1]
+    end = end_cap
+    while end > start + 1 and (_conn_key(words[end - 1]), _conn_key(words[end])) in _CONN_PAIRS:
+        end -= 1
+    return end
+
 
 def _split_long_part(part: str, max_chars: int) -> List[str]:
     """Cắt một mảnh dài quá ``max_chars`` (không còn dấu ngắt nào để bám) thành
-    các mảnh <= ``max_chars`` theo TỪ, ưu tiên cắt trước từ nối (``_CONN_WORDS``/
-    ``_CONN_PAIRS``) thay vì chặt sát trần giữa cụm.
+    các mảnh <= ``max_chars`` theo TỪ, chia ĐỀU: biết trước cần
+    ``k = ceil(len / max_chars)`` mảnh thì mỗi mảnh nhắm ``len / k`` ký tự và
+    cắt ở điểm hợp lệ gần đích nhất (xem :func:`_balanced_cut`). Trước đây là
+    greedy — đổ đầy sát trần rồi phần dư đứng riêng — nên 304 ký tự thành
+    251 + 53, và điểm cắt "gần trần" thường trúng chỗ tệ: từ nối duy nhất bị
+    từ chối vì mảnh trái chưa đủ nửa trần, rồi cắt cưỡng bức xẻ đôi
+    "hai nghìn | không trăm ba mươi mốt".
 
-    Điểm cắt tự nhiên chỉ được nhận khi mảnh trái >= ``max_chars // 2`` — lùi
-    sâu hơn thì chunk vụn ra, mất cái lợi của chunk đầy; không tìm thấy thì cắt
-    sát trần như trước. Phần dư cuối ngắn hơn slack (``_tail_slack``) thì gộp vào
-    mảnh trước dù vượt trần (trần tương đối). Token ``<en>...</en>`` luôn nguyên vẹn."""
+    Từ nối chỉ được nhận khi mảnh trái >= ``max_chars // 3`` (từng là ``// 2``;
+    một mệnh đề 85 ký tự vẫn là mệnh đề, còn con số bị cắt đôi thì không phải
+    tiếng nói). Phần dư cuối ngắn hơn slack (``_tail_slack``) vẫn gộp vào mảnh
+    trước dù vượt trần (trần tương đối). Token ``<en>...</en>`` luôn nguyên vẹn."""
     words = _tokenize_keep_en(part)
-    min_left = max_chars // 2
+    min_left = max_chars // 3
     pieces: List[str] = []
     start = 0
     while start < len(words):
-        end, length = start, 0
-        while end < len(words):
-            add = length + 1 + len(words[end]) if end > start else len(words[end])
-            if end > start and add > max_chars:
-                break
-            length, end = add, end + 1
-        if end < len(words):             # còn phần dư -> buộc phải cắt
-            rest = sum(len(w) for w in words[end:]) + (len(words) - end - 1)
-            if _fits(length, rest, max_chars):
-                # Phần dư quá ngắn ("phương.") -> gộp luôn, không để mảnh vụn.
-                end = len(words)
-                pieces.append(" ".join(words[start:end]))
-                break
-            cut = _natural_cut(words, start, end, min_left)
-            if cut is not None:
-                end = cut
-            else:
-                # Cắt sát trần cũng KHÔNG được lọt giữa cặp từ nối ("cho | đến
-                # khi") — lùi qua cả chuỗi cặp chồng lấn, chấp nhận mảnh non
-                # trần / bỏ qua min_left, miễn mảnh trái còn >= 1 từ.
-                while end > start + 1 and (
-                    _conn_key(words[end - 1]), _conn_key(words[end])
-                ) in _CONN_PAIRS:
-                    end -= 1
+        rest = _span_len(words, start, len(words))
+        if rest <= max_chars:
+            pieces.append(" ".join(words[start:]))
+            break
+        # Trần tương đối: phần dư sau chỗ đầy trần mà chỉ là một mẩu ("phương.")
+        # thì gộp luôn, không để mảnh vụn đứng riêng (xem ``_fits``).
+        full = start + 1
+        while full < len(words) and _span_len(words, start, full + 1) <= max_chars:
+            full += 1
+        if _fits(_span_len(words, start, full), _span_len(words, full, len(words)), max_chars):
+            pieces.append(" ".join(words[start:]))
+            break
+        n_pieces = -(-rest // max_chars)          # ceil
+        end = _balanced_cut(words, start, rest / n_pieces, max_chars, min_left)
         pieces.append(" ".join(words[start:end]))
         start = end
     return pieces
