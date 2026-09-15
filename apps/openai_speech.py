@@ -52,6 +52,7 @@ import io
 import json
 import logging
 import os
+import re
 import struct
 import threading
 import time
@@ -336,18 +337,40 @@ def voices():
     return {"object": "list", "data": engine().voices()}
 
 
+# A voice name is a label: letters/digits (any script), spaces, dots, dashes,
+# underscores; 1-64 chars, no control characters. It ends up in logs and in the
+# voices file, so anything else is rejected at the boundary.
+_VOICE_NAME = re.compile(r"[^\W_][\w .\-]{0,63}")
+_CLIP_EXTS = {".wav": ".wav", ".mp3": ".mp3", ".flac": ".flac", ".ogg": ".ogg", ".m4a": ".m4a"}
+_MAX_CLIP_BYTES = 20 * 1024 * 1024
+
+
 @app.post("/v1/voices", dependencies=[Depends(_auth)])
-async def add_voice(name: str = Form(...), file: UploadFile = File(...), denoise: bool = Form(True),
-                    description: str = Form("")):
-    """Enroll a 3-8 s reference clip as ``voice=name`` (in memory, for this process)."""
+def add_voice(name: str = Form(...), file: UploadFile = File(...), denoise: bool = Form(True),
+              description: str = Form("")):
+    """Enroll a 3-8 s reference clip as ``voice=name`` (in memory, for this process).
+
+    Plain ``def``: FastAPI runs it in a thread, so the blocking upload read,
+    temp file and enrolment do not stall the event loop.
+    """
     import tempfile
     eng = engine()
-    suffix = os.path.splitext(file.filename or "")[1] or ".wav"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as f:
-        f.write(await file.read())
-        path = f.name
+    if not _VOICE_NAME.fullmatch(name):
+        raise HTTPException(400, "voice name: 1-64 letters, digits, spaces, '.', '-' or '_'")
+    if not _VOICE_NAME.fullmatch(description or "x"):
+        raise HTTPException(400, "description: 1-64 letters, digits, spaces, '.', '-' or '_'")
+    # The suffix only picks the decoder; it is mapped to a constant, never taken from the client.
+    ext = _CLIP_EXTS.get(os.path.splitext(file.filename or "")[1].lower(), ".wav")
+    data = file.file.read(_MAX_CLIP_BYTES + 1)
+    if len(data) > _MAX_CLIP_BYTES:
+        raise HTTPException(413, "reference clip larger than 20 MB")
+    fd, path = tempfile.mkstemp(suffix=ext)
     try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
         eng.tts.add_voice(name, path, denoise=denoise, description=description)
+    except HTTPException:
+        raise
     except Exception as e:   # noqa: BLE001
         raise HTTPException(400, f"could not enroll voice: {e}")
     finally:

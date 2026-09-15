@@ -21,6 +21,16 @@ import requests
 SR = 48_000
 
 
+def server_url(base):
+    """The server this CLI talks to is the user's own choice (``--base``); only the
+    shape is checked: http(s) with a host, no path/query, trailing slash dropped."""
+    from urllib.parse import urlsplit
+    u = urlsplit(base)
+    if u.scheme not in ("http", "https") or not u.hostname or u.path.strip("/") or u.query or u.fragment:
+        raise SystemExit(f"--base phải có dạng http://host[:port] hoặc https://host[:port], nhận: {base!r}")
+    return f"{u.scheme}://{u.netloc}"
+
+
 def check_server(base, api_key=None):
     """Fail fast with a readable message when the server is not up (or not ready)."""
     headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
@@ -121,6 +131,7 @@ def main():
     ap.add_argument("--sse", action="store_true")
     ap.add_argument("--sdk", action="store_true")
     a = ap.parse_args()
+    a.base = server_url(a.base)
     check_server(a.base, a.api_key)
 
     if a.bench:
