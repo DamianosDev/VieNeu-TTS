@@ -173,7 +173,7 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         self.default_style = "tu_nhien"
         self._preset_voices: dict = {}
         self._default_voice: Optional[str] = None
-        # Enrolled references, keyed by clip CONTENT (sha1 of the file bytes) +
+        # Enrolled references, keyed by clip CONTENT (blake2b of the file bytes) +
         # enrol flags. Enrolling = denoise + x-vector + codec encode ≈ 2.7 s at
         # 5-10 cores on a 6-core CPU (measured 2026-09-15), and a document's
         # chunks / repeated requests reuse the same clip. Content-keyed so a
@@ -276,7 +276,10 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         import os
         key = None
         try:
-            key = (hashlib.sha1(Path(ref_audio).read_bytes()).hexdigest(), bool(denoise), bool(use_ref_codes))
+            # blake2b: fast content fingerprint (not a security boundary, but keeps
+            # the weak-hash linter quiet); 16-byte digest is plenty for a cache key.
+            digest = hashlib.blake2b(Path(ref_audio).read_bytes(), digest_size=16).hexdigest()
+            key = (digest, bool(denoise), bool(use_ref_codes))
         except OSError:
             pass   # unreadable path: let the engine raise its own error below
         if key is not None and key in self._ref_cache:
