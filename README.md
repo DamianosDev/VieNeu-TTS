@@ -531,6 +531,7 @@ The merged model keeps the full v3 Turbo API (cloning, presets, streaming) on th
 - [x] **VieNeu-TTS v3 Turbo** *(on-device, personal use)*: from-scratch 48 kHz architecture — preset voices, instant voice cloning, emotion cues, batched generation, multi-speaker conversation, frame-level streaming; torch-free on CPU.
 - [x] **VieNeu-TTS v3 Nano** *(preview)*: 48M flow-matching model for weak CPUs / edge devices — 11 preset voices + cloning, torch-free.
 - [x] **LoRA fine-tuning** for v3 Turbo — train your own voice or reading style on one consumer GPU.
+- [x] **VieNeu-TTS v3 Turbo GPU streaming server**: OpenAI-compatible `/v1/audio/speech` with continuous batching on one CUDA graph — first audio ~115 ms, 16 concurrent streams on an RTX 3060, Docker profiles `api-gpu` / `api-cpu` ([docs/streaming.md](docs/streaming.md)).
 - [ ] **VieNeu-TTS v3 (GPU, server release)**: the full v3 model for API / server deployment — finalized quality, stable emotion control, more voices.
 - [ ] **Mobile SDK**: official Android / iOS deployment.
 

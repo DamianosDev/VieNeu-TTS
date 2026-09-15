@@ -526,6 +526,7 @@ Model merge giữ nguyên toàn bộ API của v3 Turbo (clone, preset, streamin
 - [x] **VieNeu-TTS v3 Turbo** *(chạy trên thiết bị, người dùng cá nhân)*: kiến trúc 48 kHz huấn luyện từ đầu — giọng dựng sẵn, clone giọng tức thì, tag cảm xúc, sinh theo lô, hội thoại nhiều người nói, streaming theo frame; chạy CPU không cần torch.
 - [x] **VieNeu-TTS v3 Nano** *(preview)*: model flow-matching 48M cho CPU yếu / thiết bị edge — 11 giọng dựng sẵn + clone giọng, không cần torch.
 - [x] **Fine-tune LoRA** cho v3 Turbo — train giọng hoặc phong cách đọc riêng trên một GPU phổ thông.
+- [x] **Server streaming GPU cho v3 Turbo**: API chuẩn OpenAI `/v1/audio/speech`, continuous batching trên một CUDA graph — chunk đầu ~115 ms, 16 luồng đồng thời trên RTX 3060, profile Docker `api-gpu` / `api-cpu` ([docs/streaming.vi.md](docs/streaming.vi.md)).
 - [ ] **VieNeu-TTS v3 (GPU, bản server)**: model v3 đầy đủ để deploy API / server — chất lượng chốt, điều khiển cảm xúc ổn định, thêm giọng.
 - [ ] **Mobile SDK**: hỗ trợ chính thức Android / iOS.
 
