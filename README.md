@@ -240,11 +240,12 @@ docker compose -f docker/docker-compose.yml --profile api-cpu up     # or: Docke
 
 #### Available Voices
 
-The v3 Turbo engine includes **23 curated preset voices** covering **3 regions** (North, Central, South) with diverse genders and speaking characters:
+The v3 Turbo engine includes **25 preset voices** covering **3 regions** (North, Central, South) with diverse genders and speaking characters. `list_preset_voices()` (and the Web UI / API voice lists) show them in this order:
 
-- **Northern (Bắc)**: e.g. Minh Quân *(default)*, Minh Đức, Phạm Tuyên, Trúc Ly, Mai Anh, Quỳnh Anh, Xuân Vĩnh, Anh Khôi, Mạnh Dũng
+- ⭐ **Editors' picks** — the 10 we recommend starting with, hand-selected for naturalness and stability: **Adam bựa, Trúc Ly, Anh Khôi, Mai Anh, Minh Quân** *(default)*, **Thùy Dung, Thiền Tâm Đức, Ngọc Huyền, Quang Sơn, Ngọc Trân**
+- **Northern (Bắc)**: Minh Đức, Phạm Tuyên, Xuân Vĩnh, Thanh Bình, Ngọc Linh, Đoan Trang, Quỳnh Anh, Mạnh Dũng (+ picks above)
 - **Central (Trung)**: Quang Sơn, Ngọc Trân
-- **Southern (Nam)**: e.g. Adam, Thái Sơn, Thùy Dung, Mỹ Duyên
+- **Southern (Nam)**: Adam, Thái Sơn, Thục Đoan, Minh Triết, Mỹ Duyên, Đức Trí, Kim Thanh (+ Thùy Dung)
 
 ### Reading style — **deprecated** ⚠️
 

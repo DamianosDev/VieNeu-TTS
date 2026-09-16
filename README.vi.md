@@ -239,6 +239,15 @@ docker compose -f docker/docker-compose.yml --profile api-cpu up     # hoặc: D
 
 📊 **[docs/streaming.vi.md](docs/streaming.vi.md)** — toàn bộ số đo trên RTX 3060 (TTFA / RTF / số luồng theo `max_streams`), dự đoán cho GPU nhỏ hơn, và số đo CPU. Bản demo trình duyệt cũ vẫn ở [`apps/web_stream.py`](apps/web_stream.py).
 
+#### Các giọng dựng sẵn
+
+v3 Turbo có **25 giọng dựng sẵn** phủ **3 miền** (Bắc, Trung, Nam), đủ giới tính và phong cách đọc. `list_preset_voices()` (cũng như danh sách giọng trên Web UI / API) hiển thị theo đúng thứ tự này:
+
+- ⭐ **Giọng tuyển chọn** — 10 giọng chúng tôi khuyên dùng trước, chọn tay theo độ tự nhiên và ổn định: **Adam bựa, Trúc Ly, Anh Khôi, Mai Anh, Minh Quân** *(mặc định)*, **Thùy Dung, Thiền Tâm Đức, Ngọc Huyền, Quang Sơn, Ngọc Trân**
+- **Miền Bắc**: Minh Đức, Phạm Tuyên, Xuân Vĩnh, Thanh Bình, Ngọc Linh, Đoan Trang, Quỳnh Anh, Mạnh Dũng (+ các giọng tuyển ở trên)
+- **Miền Trung**: Quang Sơn, Ngọc Trân
+- **Miền Nam**: Adam, Thái Sơn, Thục Đoan, Minh Triết, Mỹ Duyên, Đức Trí, Kim Thanh (+ Thùy Dung)
+
 ### Phong cách đọc — **đã bỏ (deprecated)** ⚠️
 
 > [!WARNING]
