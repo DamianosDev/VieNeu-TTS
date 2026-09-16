@@ -118,10 +118,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 2. **Install Dependencies:**
    - **Option 1: CPU & macOS (minimal, torch-free) 
+
      ```bash
      uv sync
      ```
    - **Option 2: GPU** — **v3 Turbo on GPU (PyTorch)**
+
      ```bash
      uv sync --extra cuda
      ```
