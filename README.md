@@ -117,7 +117,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 2. **Install Dependencies:**
-   - **Option 1: CPU & macOS (minimal, torch-free) 
+   - **Option 1: CPU & macOS (minimal, torch-free)**
 
      ```bash
      uv sync
