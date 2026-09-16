@@ -15,7 +15,7 @@ but it is ignored.
 import logging
 import threading
 from pathlib import Path
-from typing import Any, Generator, List, Optional, Tuple, Union
+from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -47,6 +47,28 @@ def _cap_frames(sampling: dict, cap: int) -> dict:
     return out
 
 logger = logging.getLogger("Vieneu.V3Turbo")
+
+
+def _featured_rank(v: dict) -> Optional[int]:
+    """``featured`` from a voices JSON entry as a positive int, else ``None``."""
+    try:
+        r = int(v.get("featured"))
+    except (TypeError, ValueError):
+        return None
+    return r if r > 0 else None
+
+
+def sorted_voices(presets: Dict[str, dict]) -> List[Tuple[str, dict]]:
+    """``(name, entry)`` pairs: editors' picks first (by ``featured`` rank), then the
+    rest in insertion order."""
+    return sorted(presets.items(),
+                  key=lambda kv: (kv[1].get("featured") is None, kv[1].get("featured") or 0))
+
+
+def voice_label(name: str, v: dict) -> str:
+    """Dropdown / CLI label: ``⭐ Name — description`` for editors' picks."""
+    label = f"{name} — {v['description']}" if v.get("description") else name
+    return f"⭐ {label}" if v.get("featured") is not None else label
 
 
 class V3TurboVieNeuTTS(BaseVieneuTTS):
@@ -217,6 +239,7 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
                 "description": v.get("description", ""),
                 "gender": v.get("gender", ""),
                 "style": v.get("style", self.default_style),
+                "featured": _featured_rank(v),
                 "speaker_emb": np.asarray(emb, dtype=np.float32) if emb is not None else None,
                 "codes": strip_encoder_pad_frame(np.asarray(codes, dtype=np.int64)) if codes is not None else None,
             }
@@ -258,6 +281,7 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
                 "description": v.get("description", ""),
                 "gender": v.get("gender", ""),
                 "style": v.get("style", self.default_style),
+                "featured": _featured_rank(v),
                 "speaker_emb": np.asarray(emb, dtype=np.float32),
                 "codes": strip_encoder_pad_frame(np.asarray(codes, dtype=np.int64)) if codes is not None else None,
             }
@@ -268,9 +292,12 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
             logger.info("📢 Loaded %d extra voice(s) shipped with the model.", n)
 
     def list_preset_voices(self) -> List[tuple]:
-        """Return ``[(label, voice_id), ...]`` for the built-in voices."""
-        return [(f"{n} — {v['description']}" if v["description"] else n, n)
-                for n, v in self._preset_voices.items()]
+        """Return ``[(label, voice_id), ...]`` for the built-in voices.
+
+        Editors' picks (``featured`` 1..N in the voices JSON) come first in that
+        order with a ⭐ prefix, then the remaining voices in file order.
+        """
+        return [(voice_label(n, v), n) for n, v in sorted_voices(self._preset_voices)]
 
     def get_preset_voice(self, voice_name: Optional[str] = None) -> dict:
         name = voice_name or self._default_voice
@@ -400,7 +427,10 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
                 "speaker_emb": [round(float(x), 6) for x in np.asarray(emb).reshape(-1)] if emb is not None else None,
                 "codes": np.asarray(codes, dtype=int).tolist() if codes is not None else None,
             }
-        data = {"meta": {"note": "v3 turbo voices: speaker embedding + reference codes"},
+            if v.get("featured") is not None:
+                presets[n]["featured"] = v["featured"]
+        data = {"meta": {"note": "v3 turbo voices: speaker embedding + reference codes; "
+                                 "`featured` 1..N marks the editors' picks in display order"},
                 "default_voice": self._default_voice, "presets": presets}
         path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
         logger.info(f"💾 Saved {len(presets)} voices → {path}")

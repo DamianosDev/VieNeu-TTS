@@ -175,6 +175,19 @@ model_loaded = False
 using_lmdeploy = False
 PRESET_VOICES_CACHE = []  # List of all voices (tuples or strings)
 CONV_VOICES_CACHE = []    # Filtered list for conversation (podcast=True)
+
+
+def _sort_voices(tts, voices):
+    """Dropdown order: editors' picks (``featured`` 1..N in the voices JSON, already
+    ⭐-labelled by the SDK) first in that order, then everything else A-Z."""
+    presets = getattr(tts, "_preset_voices", {}) or {}
+
+    def _key(v):
+        label, v_id = (v[0], v[1]) if isinstance(v, tuple) else (v, v)
+        rank = presets.get(v_id, {}).get("featured") if isinstance(presets.get(v_id), dict) else None
+        return (rank is None, rank or 0, str(label))
+
+    voices.sort(key=_key)
 MAX_SPEAKERS = 8          # Max concurrent speakers in conversation tab
 
 # Normalizer (module-level singleton)
@@ -753,11 +766,8 @@ def load_model(backbone_choice: str, codec_choice: str, device_choice: str,
                 else:
                     voices.append(default_v)
             
-            # Sort voices by name/label for better UX
-            if is_tuple:
-                voices.sort(key=lambda x: str(x[0]))
-            else:
-                voices.sort()
+            # Editors' picks first, then A-Z
+            _sort_voices(tts, voices)
 
             voice_update = gr.update(choices=voices, value=default_v, interactive=True)
             
@@ -2467,10 +2477,7 @@ with gr.Blocks(theme=theme, css=css, title="VieNeu-TTS", head=head_html) as demo
                 voices = tts.list_preset_voices()
             except Exception:
                 voices = []
-            if voices and isinstance(voices[0], tuple):
-                voices.sort(key=lambda x: str(x[0]))
-            else:
-                voices.sort()
+            _sort_voices(tts, voices)
             PRESET_VOICES_CACHE = voices
 
             def _podcast(v_id):
