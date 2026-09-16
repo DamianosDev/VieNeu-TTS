@@ -117,18 +117,11 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 2. **Install Dependencies:**
-   - **Option 1: CPU & macOS (minimal, torch-free) — recommended for maximum speed** — runs **v3 Turbo via ONNX**
-     > 💡 *No GPU required. Installs only the lightweight ONNX stack; **v3 Turbo runs on CPU (48 kHz)** with default voices, voice cloning and emotion cues. PyTorch is never installed.*
-     >
-     > ⚡ **For the fastest CPU inference, install with `uv sync` — not `pip install`.** `uv sync` reproduces the locked environment that pins the optimized ONNX Runtime build, so you get maximum speed out of the box.
-     >
-     > 🍎 **macOS users: use this option too.** For v3 Turbo the torch-free ONNX path on the CPU is *faster* than the MPS/PyTorch build (`--extra cuda`), so prefer `uv sync` for top speed on Apple Silicon.
+   - **Option 1: CPU & macOS (minimal, torch-free) 
      ```bash
      uv sync
      ```
    - **Option 2: GPU** — **v3 Turbo on GPU (PyTorch)**
-     > 💡 The `cuda` extra adds only torch + transformers so **v3 Turbo runs on GPU** — inference is batched automatically on CUDA (same API, no code change). The legacy v1/v2 backends (LMDeploy, llama-cpp) live in `uv sync --group gpu`.*
-
      ```bash
      uv sync --extra cuda
      ```
