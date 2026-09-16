@@ -411,3 +411,24 @@ def test_soft_cap_long_tail_still_cut():
     pieces = _split_long_part(" ".join(tail), 128)
     assert len(pieces) == 1 and len(pieces[0]) == 129
     assert _tail_slack(128) == 15 and _tail_slack(40) == 5
+
+
+# ── issue #198: encoder pad frame ─────────────────────────────────────────────
+
+def test_pad_to_codec_frame_rounds_up_to_whole_frames():
+    from vieneu_utils.core_utils import CODEC_SAMPLES_PER_FRAME as F, pad_to_codec_frame
+    assert len(pad_to_codec_frame(np.zeros(10 * F, np.float32))) == 10 * F
+    assert len(pad_to_codec_frame(np.ones(10 * F + 1, np.float32))) == 11 * F
+    assert len(pad_to_codec_frame(np.ones(10 * F + F - 1, np.float32))) == 11 * F
+    out = pad_to_codec_frame(np.ones(5, np.float32))
+    assert out[:5].tolist() == [1.0] * 5 and not out[5:].any()
+    assert len(pad_to_codec_frame(np.ones(7, np.float32), sr=24_000)) == 7   # only defined at 48 kHz
+
+
+def test_strip_encoder_pad_frame_drops_only_a_trailing_455():
+    from vieneu_utils.core_utils import strip_encoder_pad_frame
+    codes = np.array([[10, 1], [20, 2], [455, 3]])
+    assert strip_encoder_pad_frame(codes).tolist() == [[10, 1], [20, 2]]
+    assert strip_encoder_pad_frame(np.array([[10, 1], [455, 2], [20, 3]])).shape[0] == 3
+    assert strip_encoder_pad_frame(np.array([[455, 1]])).shape[0] == 1   # never empty a reference
+    assert strip_encoder_pad_frame(None) is None

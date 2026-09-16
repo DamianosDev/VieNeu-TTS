@@ -246,3 +246,39 @@ def test_infer_stream_serves_concurrent_callers_and_matches_full_decode():
     time.sleep(0.5)
     assert sched.n_active == 0
     tts.close()
+
+
+# ── issue #198: reference encoder must not append the audible pad frame ──────
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="needs CUDA")
+def test_pytorch_reference_encoder_has_no_pad_frame():
+    """Clip lẻ mẫu → đúng ceil(n/3840) frame, frame cuối là mã thật (im lặng = 482),
+    không phải mã đệm 455 nghe được."""
+    import numpy as np
+    from vieneu import Vieneu
+    from vieneu_utils.core_utils import CODEC_SAMPLES_PER_FRAME as F, ENCODER_PAD_CODE
+
+    tts = Vieneu(mode="v3turbo", device="cuda", backend="pytorch")
+    enc = lambda w: tts.engine._encode_ref_wav(torch.from_numpy(w).unsqueeze(0), 48_000)
+    for n, extra in [(10, 0), (50, 1), (50, F - 1)]:
+        codes = enc(np.zeros(n * F + extra, np.float32))
+        assert codes.shape[0] == n + (1 if extra else 0)
+        assert int(codes[-1, 0]) != ENCODER_PAD_CODE and int(codes[-1, 0]) == 482
+    for v in tts._preset_voices.values():
+        if v["codes"] is not None:
+            assert int(v["codes"][-1, 0]) != ENCODER_PAD_CODE
+
+
+def test_onnx_reference_encoder_has_no_pad_frame():
+    """Đường ONNX từng LUÔN trả n+1 frame với frame cuối 455, kể cả clip tròn frame."""
+    import numpy as np
+    from vieneu_utils.core_utils import CODEC_SAMPLES_PER_FRAME as F, ENCODER_PAD_CODE
+    try:
+        from vieneu import Vieneu
+        tts = Vieneu(mode="v3turbo", device="cpu", backend="onnx")
+    except Exception as e:   # noqa: BLE001 — no model cache / no onnxruntime here
+        pytest.skip(f"ONNX engine unavailable: {e}")
+    for n, extra in [(10, 0), (50, 1), (50, F - 1)]:
+        codes = tts.engine._encode_ref_wav(np.zeros(n * F + extra, np.float32), 48_000)
+        assert codes.shape[0] == n + (1 if extra else 0)
+        assert int(codes[-1, 0]) != ENCODER_PAD_CODE and int(codes[-1, 0]) == 482

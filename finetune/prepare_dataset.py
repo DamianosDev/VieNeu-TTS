@@ -101,6 +101,16 @@ def main() -> None:
 
     if not recs:
         raise SystemExit("No usable clips.")
+    # Issue #198: a bug in the encoder used to end EVERY row with the same
+    # codebook-0 value (455, the pad-frame artifact) and the model learnt to
+    # emit it after each sentence. Clean data never agrees on a last code.
+    from collections import Counter
+    last = Counter(x["codes"][-1][0] for x in recs)
+    code, n_same = last.most_common(1)[0]
+    if len(recs) >= 20 and n_same / len(recs) > 0.5:
+        raise SystemExit(f"{n_same}/{len(recs)} rows end with codebook-0 = {code}: the encoder is appending a "
+                         f"pad frame (issue #198). Update vieneu and rebuild — training on this teaches the "
+                         f"model to say that frame after every sentence.")
     import pyarrow as pa, pyarrow.parquet as pq
     pq.write_table(pa.Table.from_pylist(recs), str(out))
     total = sum(x["duration"] for x in recs)

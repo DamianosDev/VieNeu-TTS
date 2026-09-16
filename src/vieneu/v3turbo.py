@@ -26,8 +26,12 @@ from vieneu_utils.phonemize_text import (
     normalize_to_chunks_v3_with_gaps,
 )
 from vieneu_utils.core_utils import (
-    join_audio_chunks, gaps_to_silence, max_expected_frames, pause_pad_samples,
+    join_audio_chunks,
+    gaps_to_silence,
+    max_expected_frames,
+    pause_pad_samples,
     BABBLE_MAX_RETRIES,
+    strip_encoder_pad_frame,
 )
 
 
@@ -214,7 +218,7 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
                 "gender": v.get("gender", ""),
                 "style": v.get("style", self.default_style),
                 "speaker_emb": np.asarray(emb, dtype=np.float32) if emb is not None else None,
-                "codes": np.asarray(codes, dtype=np.int64) if codes is not None else None,
+                "codes": strip_encoder_pad_frame(np.asarray(codes, dtype=np.int64)) if codes is not None else None,
             }
         self._default_voice = data.get("default_voice")
         logger.info(f"📢 Loaded {len(self._preset_voices)} preset voices (default: {self._default_voice})")
@@ -255,7 +259,7 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
                 "gender": v.get("gender", ""),
                 "style": v.get("style", self.default_style),
                 "speaker_emb": np.asarray(emb, dtype=np.float32),
-                "codes": np.asarray(codes, dtype=np.int64) if codes is not None else None,
+                "codes": strip_encoder_pad_frame(np.asarray(codes, dtype=np.int64)) if codes is not None else None,
             }
             n += 1
         if data.get("default_voice") in self._preset_voices:

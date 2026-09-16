@@ -95,6 +95,39 @@ MAX_FRAMES_PER_PHONE = 2.0
 _FRAME_CAP_SLACK = 24            # frame trừ hao cho lead-in / chi phí cố định
 _FRAME_MARKUP_RE = re.compile(r"<\|emotion_\d+\|>|</?en>")
 
+# ── Mã hoá clip tham chiếu: đuôi lẻ (issue #198) ────────────────────────────
+# MOSS codec: 1 frame = 3840 mẫu @ 48 kHz. Clip không tròn frame thì encoder tự đệm
+# frame cuối và frame ấy LUÔN ra codebook-0 = 455 — không phải im lặng (482) mà là
+# một tiếng ngắn nghe rõ (RMS ~0.03 so với đuôi thật ~0.001). Nó dính vào ref_codes
+# của mọi giọng nhân bản và vào nhãn của 100% hàng fine-tune, mô hình học thuộc và
+# nhả ra ở cuối câu. Sửa: đệm zero cho tròn frame TRƯỚC khi mã hoá (frame cuối thành
+# mã thật của phần đuôi + im lặng) và ép số frame = số mẫu / 3840 (đường ONNX luôn
+# trả thêm một frame). Mã đã lưu từ trước thì bỏ frame 455 ở đuôi khi nạp.
+CODEC_SAMPLES_PER_FRAME = 3840
+ENCODER_PAD_CODE = 455
+
+
+def pad_to_codec_frame(wav, sr: int = 48_000):
+    """Đệm zero ở đuôi để độ dài là bội số của một frame codec (chỉ áp @ 48 kHz)."""
+    n = len(wav)
+    if sr != 48_000 or n % CODEC_SAMPLES_PER_FRAME == 0:
+        return wav
+    return np.concatenate([np.asarray(wav, dtype=np.float32),
+                           np.zeros(CODEC_SAMPLES_PER_FRAME - n % CODEC_SAMPLES_PER_FRAME, np.float32)])
+
+
+def strip_encoder_pad_frame(codes):
+    """Bỏ frame đuôi do encoder đệm (codebook-0 == 455) khỏi mã ``(T, n_vq)`` đã lưu
+    bằng bản cũ. Frame thật hiếm khi mang mã này, và mất 80 ms ngữ cảnh tham chiếu
+    thì vô hại — còn giữ lại thì mọi lượt sinh đều thấy một tiếng lạ ở cuối ngữ cảnh."""
+    if codes is None:
+        return None
+    arr = np.asarray(codes)
+    if arr.ndim == 2 and arr.shape[0] > 1 and int(arr[-1, 0]) == ENCODER_PAD_CODE:
+        return arr[:-1]
+    return arr
+
+
 # Codec chạy 12.5 frame/giây. Chunk rất ngắn thì công thức tuyến tính theo phoneme
 # vẫn quá hào phóng ("chào" -> 40 frame = 3.2s toàn phần bịa), nên chặn thêm một
 # trần theo SỐ TIẾNG (âm tiết): 13 frame (~1s) cho 1 tiếng, +5 frame mỗi tiếng

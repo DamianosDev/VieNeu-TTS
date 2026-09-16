@@ -34,7 +34,7 @@ from typing import Generator, List, Optional, Tuple, Union
 import numpy as np
 
 from .rep_history import DEFAULT_REP_WINDOW, RepetitionHistory
-from vieneu_utils.core_utils import BABBLE_MAX_RETRIES, babble_suspect, babble_prefer, babble_log_line
+from vieneu_utils.core_utils import (BABBLE_MAX_RETRIES, babble_suspect, babble_prefer, babble_log_line, CODEC_SAMPLES_PER_FRAME, pad_to_codec_frame)
 import logging
 
 _V3_REPO = "pnnbao-ump/VieNeu-TTS-v3-Turbo"
@@ -592,11 +592,18 @@ class OnnxV3LiteEngine:
         return out[0][0].mean(0).astype(np.float32)
 
     def _encode_ref_wav(self, wav: np.ndarray, sr: int) -> np.ndarray:
-        """wav: 1D mono float → MOSS ref codes (T, n_vq), torch-free."""
+        """wav: 1D mono float → MOSS ref codes (T, n_vq), torch-free, ``T = n_padded / 3840``.
+
+        Zero-padded to whole codec frames first, and cut to exactly ``T`` frames:
+        the ONNX encoder always returns one frame more than the input holds, and
+        that frame is the audible codebook-0 = 455 pad artifact (issue #198).
+        """
         wav = np.asarray(wav, dtype=np.float32).reshape(-1)
         if sr != self.SAMPLE_RATE:
             import soxr
             wav = soxr.resample(wav, sr, self.SAMPLE_RATE).astype(np.float32)
+        wav = pad_to_codec_frame(wav, self.SAMPLE_RATE)
+        n_frames = len(wav) // CODEC_SAMPLES_PER_FRAME
         stereo = np.stack([wav, wav])[None].astype(np.float32)     # (1, 2, n)
         lens = np.array([stereo.shape[-1]], dtype=np.int32)
         if self._sess_codec_enc is None:
@@ -604,7 +611,7 @@ class OnnxV3LiteEngine:
             self._sess_codec_enc = ort.InferenceSession(
                 self._codec_enc_path, self._so, providers=["CPUExecutionProvider"])
         out = self._sess_codec_enc.run(None, {"waveform": stereo, "input_lengths": lens})
-        return np.asarray(out[0][0], dtype=np.int64)               # (T, n_vq)
+        return np.asarray(out[0][0], dtype=np.int64)[:n_frames]    # (T, n_vq)
 
     def _encode_ref(self, ref_audio_path: str) -> np.ndarray:
         wav, sr = self._load_mono(ref_audio_path, None)
