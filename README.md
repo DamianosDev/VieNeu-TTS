@@ -36,6 +36,9 @@
 
 <h3>🎬 Demos</h3>
 
+> [!TIP]
+> **Dubbing**, **Lecture**, and **Audiobook** features are exclusively available in the [official VieNeu App](https://www.vieneu.io/#/download). This GitHub repository only provides a simplified Gradio demo interface.
+
 <table>
   <!-- Hàng 1 -->
   <tr>
