@@ -147,7 +147,8 @@ class Engine:
         out = []
         for name, v in self.tts._preset_voices.items():
             out.append({"id": name, "name": name, "description": v.get("description", ""),
-                        "gender": v.get("gender", "")})
+                        "gender": v.get("gender", ""), "featured": v.get("featured"),
+                        "aliases": list(v.get("aliases") or [])})
         return out
 
 
@@ -303,7 +304,7 @@ def speech(req: SpeechRequest):
         raise HTTPException(400, "stream_format must be 'audio' or 'sse'")
     if req.sample_rate not in RATES:
         raise HTTPException(400, f"sample_rate must be one of {RATES}")
-    if req.voice and req.voice not in eng.tts._preset_voices:
+    if req.voice and eng.tts.resolve_voice_name(req.voice) is None:
         raise HTTPException(400, f"unknown voice '{req.voice}'; see GET /v1/voices")
     rid = f"spk-{uuid.uuid4().hex[:8]}"
     eng.acquire()   # 429 if the server is full; released when the stream ends

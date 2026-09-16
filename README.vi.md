@@ -182,7 +182,7 @@ vieneu = Vieneu()
 
 # 1. Giọng dựng sẵn theo tên — không cần audio mẫu
 print("🔊 Đang sinh giọng nói...")
-audio = vieneu.infer("Xin chào, đây là VieNeu-TTS.", voice="Minh Quân")
+audio = vieneu.infer("Xin chào, đây là VieNeu-TTS.", voice="Minh Quân Pro")
 vieneu.save(audio, "output.wav")
 print("✅ Đã lưu vào output.wav")
 
@@ -207,7 +207,7 @@ for label, voice_id in voices:
 #     "Nếu thấy hữu ích, các bạn nhớ để lại một lượt thích và chia sẻ video này cho mọi người nhé!",
 # ] * 10   # 30 câu — đủ lấp đầy batch để thấy rõ sức mạnh throughput của GPU
 # t0 = time.time()
-# audios = vieneu.infer_batch(texts, voice="Minh Quân")
+# audios = vieneu.infer_batch(texts, voice="Minh Quân Pro")
 # elapsed = time.time() - t0
 # total_audio = sum(len(a) for a in audios) / 48_000
 # print(f"⚡ {len(texts)} câu | audio {total_audio:.1f}s | thời gian {elapsed:.1f}s | RTF {elapsed/total_audio:.3f}")
@@ -243,7 +243,7 @@ docker compose -f docker/docker-compose.yml --profile api-cpu up     # hoặc: D
 
 v3 Turbo có **25 giọng dựng sẵn** phủ **3 miền** (Bắc, Trung, Nam), đủ giới tính và phong cách đọc. `list_preset_voices()` (cũng như danh sách giọng trên Web UI / API) hiển thị theo đúng thứ tự này:
 
-- ⭐ **Giọng tuyển chọn** — 10 giọng chúng tôi khuyên dùng trước, chọn tay theo độ tự nhiên và ổn định: **Adam bựa, Trúc Ly, Anh Khôi, Mai Anh, Minh Quân** *(mặc định)*, **Thùy Dung, Thiền Tâm Đức, Ngọc Huyền, Quang Sơn, Ngọc Trân**
+- ⭐ **Giọng tuyển chọn** — 10 giọng chúng tôi khuyên dùng trước, chọn tay theo độ tự nhiên và ổn định: **Adam bựa, Trúc Ly, Anh Khôi, Mai Anh, Minh Quân Pro** *(mặc định; gọi `"Minh Quân"` vẫn ra giọng này)*, **Thùy Dung, Thiền Tâm Đức, Ngọc Huyền, Quang Sơn, Ngọc Trân**
 - **Miền Bắc**: Minh Đức, Phạm Tuyên, Xuân Vĩnh, Thanh Bình, Ngọc Linh, Đoan Trang, Quỳnh Anh, Mạnh Dũng (+ các giọng tuyển ở trên)
 - **Miền Trung**: Quang Sơn, Ngọc Trân
 - **Miền Nam**: Adam, Thái Sơn, Thục Đoan, Minh Triết, Mỹ Duyên, Đức Trí, Kim Thanh (+ Thùy Dung)
@@ -261,10 +261,10 @@ v3 Turbo có **25 giọng dựng sẵn** phủ **3 miền** (Bắc, Trung, Nam),
 
 ```python
 # Code cũ — vẫn chạy, nhưng `style` bị bỏ qua
-audio = vieneu.infer("Bản tin sáng nay.", voice="Minh Quân", style="tin_tuc")
+audio = vieneu.infer("Bản tin sáng nay.", voice="Minh Quân Pro", style="tin_tuc")
 
 # Code mới — chọn chất giọng/cách đọc bằng chính giọng mẫu hoặc clip reference
-audio = vieneu.infer("Bản tin sáng nay.", voice="Minh Quân")
+audio = vieneu.infer("Bản tin sáng nay.", voice="Minh Quân Pro")
 ```
 
 ### Tag cảm xúc (thử nghiệm)
@@ -272,7 +272,7 @@ audio = vieneu.infer("Bản tin sáng nay.", voice="Minh Quân")
 Chèn trực tiếp trong văn bản: `[cười]`, `[thở dài]`, `[hắng giọng]`.
 
 ```python
-audio = vieneu.infer("Nghe hay quá đi [cười]. Để mình nói tiếp [hắng giọng].", voice="Minh Quân")
+audio = vieneu.infer("Nghe hay quá đi [cười]. Để mình nói tiếp [hắng giọng].", voice="Minh Quân Pro")
 ```
 
 > [!TIP]

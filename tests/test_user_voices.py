@@ -98,3 +98,23 @@ def test_unsupported_model(home):
     assert uv.load_user_voices(Old()) == []
     with pytest.raises(ValueError):
         uv.save_user_voice(Old(), "A", "x.wav")
+
+
+def test_voice_aliases_resolve_to_renamed_preset():
+    """"Minh Quân" was renamed "Minh Quân Pro"; the old name must keep working
+    everywhere a voice name is accepted, without showing up as a second voice."""
+    from vieneu.v3turbo import V3TurboVieNeuTTS
+    import numpy as np
+
+    tts = V3TurboVieNeuTTS.__new__(V3TurboVieNeuTTS)
+    tts._preset_voices, tts._voice_aliases, tts.default_style = {}, {}, "tu_nhien"
+    tts._load_v3_voices()
+    assert tts._default_voice == "Minh Quân Pro"
+    assert tts.resolve_voice_name("Minh Quân") == "Minh Quân Pro"
+    assert tts.resolve_voice_name("Minh Quân Pro") == "Minh Quân Pro"
+    assert tts.resolve_voice_name("Không Có") is None
+    assert tts.get_preset_voice("Minh Quân") is tts.get_preset_voice("Minh Quân Pro")
+    ids = [v for _, v in tts.list_preset_voices()]
+    assert "Minh Quân Pro" in ids and "Minh Quân" not in ids
+    assert np.array_equal(tts._resolve_ref("Minh Quân", None, True, True)[0],
+                          tts._resolve_ref(None, None, True, True)[0])
