@@ -117,7 +117,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 2. **Install Dependencies:**
-   > 📊 **Which one? A quick benchmark (RTX 3060 vs a 6-core desktop CPU, same model):**
+   > 📊 **Which one? A quick benchmark (RTX 3060 12 GB vs an Intel Core i5 12th gen, 6 P-cores, same model):**
    >
    > | | RTF (generation time ÷ audio length) | What it means |
    > |---|---|---|
@@ -154,7 +154,7 @@ The `vieneu` SDK **defaults to VieNeu-TTS v3 Turbo (48 kHz)**. The minimal insta
 
 ### Quick Start
 
-**CPU (default)** — torch-free, runs v3 Turbo via ONNX Runtime. Most users want this. **RTF ≈ 0.5 on a 6-core desktop** (a 10 s sentence takes ~5 s; ~2× faster than real-time, first streamed audio in ~300 ms):
+**CPU (default)** — torch-free, runs v3 Turbo via ONNX Runtime. Most users want this. **RTF ≈ 0.5 on an Intel Core i5 12th gen (6 P-cores)** (a 10 s sentence takes ~5 s; ~2× faster than real-time, first streamed audio in ~300 ms):
 > ⚡**On CPU the backbone runs `fp32` by default** (maximum fidelity). Need more speed? Pass `Vieneu(precision="int8")` — **RTF ≈ 0.35**, ~1.6× faster and ~4× smaller, but it requires a CPU with VNNI (AVX-512 VNNI / AVX-VNNI); on older CPUs int8 can produce garbled audio. `precision` only affects the CPU/ONNX path; on GPU it's ignored (PyTorch).
 >
 > 🪶 **Still too slow, or deploying on a phone / ARM board?** Try **[VieNeu-TTS v3 Nano (preview)](#v3-nano)** — `Vieneu(mode="v3nano")`, ~3× faster than Turbo fp32 on CPU (RTF 0.11–0.22 on a desktop CPU), but **noticeably lower quality** (especially English / bilingual), 24 kHz, 11 preset voices + voice cloning. Details and caveats in the [v3 Nano section](#v3-nano) below.
@@ -175,7 +175,7 @@ pip install vieneu
 > | 16 chunks batched (154 s of audio) | **2.8 s** | **0.02** |
 > | Streaming, 16 listeners at once | first audio ~115 ms each | ≈ 0.5 per stream |
 >
-> The same 154 s of audio takes ~85 s on a 6-core CPU. The first call for each
+> The same 154 s of audio takes ~85 s on the i5 12th gen CPU. The first call for each
 > batch size pays ~0.5 s to capture the graph (kept afterwards; servers can
 > call `warm_fused()` at start-up). `VIENEU_FUSED_FRAME=0` restores the plain
 > loop.

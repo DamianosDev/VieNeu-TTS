@@ -97,7 +97,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 2. **Cài đặt các phụ thuộc:**
-   > 📊 **Chọn cái nào? Benchmark nhanh (RTX 3060 so với CPU desktop 6 nhân, cùng model):**
+   > 📊 **Chọn cái nào? Benchmark nhanh (RTX 3060 12 GB so với Intel Core i5 thế hệ 12, 6 P-core, cùng model):**
    >
    > | | RTF (thời gian sinh ÷ độ dài audio) | Ý nghĩa |
    > |---|---|---|
@@ -161,7 +161,7 @@ SDK `vieneu` **mặc định dùng VieNeu-TTS v3 Turbo (48 kHz)**. Bản cài t�
 > ```
 
 ### Bắt đầu nhanh
-**CPU (mặc định)** — không cần torch, chạy v3 Turbo bằng ONNX Runtime. Đa số người dùng chọn cái này. **RTF ≈ 0,5 trên CPU desktop 6 nhân** (câu 10 s sinh mất ~5 s, nhanh ~2× thời gian thực; audio stream đầu tiên sau ~300 ms). Cần nhanh hơn thì `Vieneu(precision="int8")` — RTF ≈ 0,35, cần CPU có VNNI:
+**CPU (mặc định)** — không cần torch, chạy v3 Turbo bằng ONNX Runtime. Đa số người dùng chọn cái này. **RTF ≈ 0,5 trên Intel Core i5 thế hệ 12 (6 P-core)** (câu 10 s sinh mất ~5 s, nhanh ~2× thời gian thực; audio stream đầu tiên sau ~300 ms). Cần nhanh hơn thì `Vieneu(precision="int8")` — RTF ≈ 0,35, cần CPU có VNNI:
 
 ```bash
 pip install vieneu
@@ -186,7 +186,7 @@ pip install vieneu
 > | 16 chunk batch (154 s audio) | **2,8 s** | **0,02** |
 > | Streaming 16 người nghe cùng lúc | chunk đầu ~115 ms mỗi luồng | ≈ 0,5 mỗi luồng |
 >
-> Cùng 154 s audio đó CPU 6 nhân mất ~85 s. Lần gọi đầu cho mỗi cỡ batch tốn
+> Cùng 154 s audio đó CPU i5 thế hệ 12 mất ~85 s. Lần gọi đầu cho mỗi cỡ batch tốn
 > thêm ~0,5 s để capture graph (giữ lại cho các lần sau; server gọi
 > `warm_fused()` lúc khởi động). `VIENEU_FUSED_FRAME=0` quay về vòng lặp thường.
 
