@@ -69,6 +69,7 @@
     </td>
   </tr>
 </table>
+
 ## 📌 Table of Contents
 
 1. [🦜 Installation & Web UI](#installation)
