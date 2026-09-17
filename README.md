@@ -38,50 +38,37 @@
 <h3>🎬 Demos</h3>
 
 > [!TIP]
-> **Dubbing**, **Lecture**, and **Audiobook** features are exclusively available in the [official VieNeu App](https://www.vieneu.io/#/download). This GitHub repository only provides a simplified Gradio demo interface and the core SDK for developers.
+> **Dubbing**, **Lecture**, **Tiktok Reel** and **Audiobook** features are exclusively available in the [official VieNeu App](https://www.vieneu.io/#/download). This GitHub repository only provides a simplified Gradio demo interface and the core SDK for developers.
 
 <table>
   <!-- Hàng 1 -->
   <tr>
-    <td align="center" width="50%">
+    <td align="center" width="35%">
       <b>Voice Cloning</b><br><br>
-      <video
-        src="https://github.com/user-attachments/assets/021f6671-2d7f-4635-91fb-88b2ab0ddbcd"
-        controls
-        width="100%">
-      </video>
+      <video src="https://github.com/user-attachments/assets/021f6671-2d7f-4635-91fb-88b2ab0ddbcd" controls width="100%"></video>
     </td>
-    <td align="center" width="50%">
+    <td align="center" width="35%">
       <b>Dubbing</b><br><br>
-      <video
-        src="https://github.com/user-attachments/assets/5888aea1-4f32-4397-9dd9-9c7b743d31bd"
-        controls
-        width="100%">
-      </video>
+      <video src="https://github.com/user-attachments/assets/5888aea1-4f32-4397-9dd9-9c7b743d31bd" controls width="100%"></video>
+    </td>
+    <!-- Cột phải: TikTok Reel chiếm 2 hàng -->
+    <td align="center" width="30%" rowspan="2" style="vertical-align: middle;">
+      <b>Tiktok Reel</b><br><br>
+      <video src="https://github.com/user-attachments/assets/561a1c55-a298-4a78-a501-c778c2640013" controls width="100%"></video>
     </td>
   </tr>
   <!-- Hàng 2 -->
   <tr>
-    <td align="center" width="50%">
+    <td align="center" width="35%">
       <b>Dubbing / Conversation</b><br><br>
-      <video
-        src="https://github.com/user-attachments/assets/28104b78-2d55-4914-85b7-5f425a7e99da"
-        controls
-        width="100%">
-      </video>
+      <video src="https://github.com/user-attachments/assets/28104b78-2d55-4914-85b7-5f425a7e99da" controls width="100%"></video>
     </td>
-    <td align="center" width="50%">
+    <td align="center" width="35%">
       <b>Lecture</b><br><br>
-      <video
-        src="https://github.com/user-attachments/assets/de3b2d4e-4c50-4164-acdc-e3de90840e26"
-        controls
-        width="100%">
-      </video>
+      <video src="https://github.com/user-attachments/assets/de3b2d4e-4c50-4164-acdc-e3de90840e26" controls width="100%"></video>
     </td>
   </tr>
 </table>
-
-
 ## 📌 Table of Contents
 
 1. [🦜 Installation & Web UI](#installation)
