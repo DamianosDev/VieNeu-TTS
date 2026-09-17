@@ -120,17 +120,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 2. **Cài đặt các phụ thuộc:**
    > 📊 **Chọn cái nào?** CPU ≈ **RTF 0,5** (nhanh 2× thời gian thực, một luồng) · GPU ≈ **RTF 0,02** khi batch (~50× thời gian thực) và **16 luồng streaming real-time** — toàn bộ số đo ở [§4 Benchmark](#benchmarks).
 
-   - **Lựa chọn 1: CPU & macOS (tối giản, không cần torch)** — chạy **v3 Turbo bằng ONNX**, RTF ≈ 0,5, không cần GPU
-     > 💡 *Không cần GPU. Chỉ cài bộ ONNX nhẹ; **v3 Turbo chạy trên CPU (48 kHz)** với giọng mặc định, voice cloning và tag cảm xúc. Hoàn toàn không cài PyTorch.*
-     >
-     > ⚡ **Để CPU chạy nhanh nhất, hãy cài bằng `uv sync` — đừng dùng `pip install`.** `uv sync` dựng lại đúng môi trường đã khóa (lockfile) với bản ONNX Runtime đã tối ưu, nhờ đó đạt tốc độ tối đa ngay từ đầu.
-     >
-     > 🍎 **Người dùng macOS: cũng dùng lựa chọn này.** Với v3 Turbo, đường ONNX không-torch chạy trên CPU *nhanh hơn* bản MPS/PyTorch (`--extra cuda`), nên hãy ưu tiên `uv sync` để đạt tốc độ cao nhất trên Apple Silicon.
+   - **Lựa chọn 1: CPU & macOS (tối giản, không cần torch)** — RTF ≈ 0,5, không cần GPU
+
      ```bash
      uv sync
      ```
    - **Lựa chọn 2: GPU** — **v3 Turbo chạy trên GPU (PyTorch)** — RTF ≈ 0,02 khi batch, 16 luồng streaming real-time
-     > 💡 *Yêu cầu GPU NVIDIA CUDA (CUDA ≥ 12.8). Khuyến nghị cài [NVIDIA Toolkit](https://developer.nvidia.com/cuda-downloads). Extra `cuda` chỉ thêm torch + transformers để **v3 Turbo chạy trên GPU** — trên CUDA suy luận được **batch tự động** (cùng API, không đổi code). Các backend v1/v2 cũ (LMDeploy, llama-cpp) nằm ở `uv sync --group gpu`.*
 
      ```bash
      uv sync --extra cuda
