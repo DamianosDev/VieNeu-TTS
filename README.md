@@ -363,7 +363,7 @@ wav, sr = vieneu.denoise("noisy.wav", out_path="clean.wav")   # 44.1 kHz mono
 > - **11 preset voices + voice cloning** (`ref_audio`, `add_voice`, `encode_reference` work like Turbo; the three cloning graphs, ~110 MB, download on first use).
 > - **No frame-level streaming** — `infer_stream` yields one finished chunk at a time.
 
-Measured on the same desktop CPU (12th-gen Intel i7, 6 ONNX Runtime threads, ~9 s of speech):
+Measured on the same desktop CPU (12th-gen Intel Core i5, 6 P-cores, 6 ONNX Runtime threads, ~9 s of speech):
 
 | Engine | RTF ↓ | Sample rate | Load time |
 |---|---|---|---|

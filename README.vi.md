@@ -352,7 +352,7 @@ wav, sr = vieneu.denoise("noisy.wav", out_path="clean.wav")   # 44.1 kHz mono
 > - **11 giọng có sẵn + clone giọng** (`ref_audio`, `add_voice`, `encode_reference` dùng như Turbo; ba đồ thị clone ~110 MB tải ở lần dùng đầu).
 > - **Không streaming theo frame** — `infer_stream` trả từng chunk đã hoàn chỉnh.
 
-Đo trên cùng một CPU desktop (Intel i7 thế hệ 12, 6 luồng ONNX Runtime, ~9 giây tiếng nói):
+Đo trên cùng một CPU desktop (Intel Core i5 thế hệ 12, 6 P-core, 6 luồng ONNX Runtime, ~9 giây tiếng nói):
 
 | Engine | RTF ↓ | Sample rate | Thời gian nạp |
 |---|---|---|---|
