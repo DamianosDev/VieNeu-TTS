@@ -538,11 +538,11 @@ Streams ≠ users: a stream lives only while a reply plays, so 16 streams ≈ 45
 
 ## 🎓 5. Fine-tuning (LoRA) <a name="finetune"></a>
 
-v3 Turbo already clones a voice from a clip of a few seconds. Fine-tune with **LoRA** when you need a tighter match than cloning, a specific reading style (storytelling, news, narration…), or better reading on your own domain. One voice needs about **10–30 minutes** of clean audio; 2–4 hours only when packing several voices into one model. Only a few million parameters are trained, so a ~6 GB GPU is enough.
+v3 Turbo already clones a voice from a clip of a few seconds. Fine-tune with **LoRA** when you need a tighter match than cloning, a specific reading style (storytelling, news, narration…), or better reading on your own domain. A LoRA teaches **one voice**: about **10–30 minutes** of clean audio from one speaker (one LoRA per voice if you need several). Only a few million parameters are trained, so a ~6 GB GPU is enough.
 
 ```bash
 uv sync --extra finetune
-uv run python finetune/prepare_dataset.py --dataset-dir finetune/dataset --speaker my_voice   # CPU, torch-free
+uv run python finetune/prepare_dataset.py --dataset-dir finetune/dataset   # CPU, torch-free; all clips = one speaker
 uv run python finetune/train_lora.py --data finetune/dataset/train.parquet --run my_voice --merge
 uv run python finetune/make_voice.py --audio ref.wav --name "My voice" --out finetune/output/my_voice/merged
 ```
@@ -552,7 +552,7 @@ tts = Vieneu(mode="v3turbo", backbone_repo="finetune/output/my_voice/merged")   
 audio = tts.infer("Xin chào!", voice="My voice")        # packed voice — no reference audio needed
 ```
 
-The merged model keeps the full v3 Turbo API (cloning, presets, streaming) on the PyTorch/GPU backend. Data layout, options and tips: [`finetune/README.md`](finetune/README.md).
+The merged model speaks that one voice from its packed speaker embedding (no reference audio) and keeps the v3 Turbo API (presets, batching, streaming) on the PyTorch/GPU backend; use the base model to clone other voices. Data layout, options and tips: [`finetune/README.md`](finetune/README.md).
 
 ---
 
