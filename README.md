@@ -10,7 +10,7 @@
 
 <img width="1087" height="710" alt="image" src="https://github.com/user-attachments/assets/5534b5db-f30b-4d27-8a35-80f1cf6e5d4d" />
 
-**VieNeu-TTS** is the next generation of on-device Vietnamese TTS, featuring **10,000+ hours** of bilingual training, **instant voice cloning**, and a dedicated **Podcast/Conversation** mode.
+**VieNeu-TTS** is the next generation of on-device Vietnamese TTS: **10,000+ hours** of bilingual training, **instant voice cloning**, a dedicated **Podcast/Conversation** mode, and **extremely fast** — real-time streaming with first audio in ~115 ms, **RTF ≈ 0.01–0.02** batched on a consumer GPU (RTX 3060), ~2× real-time on a plain CPU ([benchmarks](#benchmarks)).
 
 > [!IMPORTANT]
 > **🦜 VieNeu-TTS v4 — available on [vieneu.io](https://www.vieneu.io)**

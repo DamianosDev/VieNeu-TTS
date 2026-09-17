@@ -10,7 +10,7 @@
 
 <img width="1087" height="710" alt="image" src="https://github.com/user-attachments/assets/5534b5db-f30b-4d27-8a35-80f1cf6e5d4d" />
 
-**VieNeu-TTS** là thế hệ tiếp theo của mô hình chuyển văn bản thành giọng nói (TTS) tiếng Việt chạy trên thiết bị: **10.000+ giờ dữ liệu** huấn luyện song ngữ, **clone giọng tức thì**, và chế độ **Podcast/Hội thoại** chuyên dụng.
+**VieNeu-TTS** là thế hệ tiếp theo của mô hình chuyển văn bản thành giọng nói (TTS) tiếng Việt chạy trên thiết bị: **10.000+ giờ dữ liệu** huấn luyện song ngữ, **clone giọng tức thì**, chế độ **Podcast/Hội thoại** chuyên dụng, và **cực nhanh** — streaming thời gian thực với chunk đầu ~115 ms, **RTF ≈ 0,01–0,02** khi batch trên GPU phổ thông (RTX 3060), nhanh ~2× thời gian thực trên CPU thường ([benchmark](#benchmarks)).
 
 > [!IMPORTANT]
 > **🦜 VieNeu-TTS v4 — đã có trên [vieneu.io](https://www.vieneu.io)**
