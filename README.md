@@ -117,12 +117,23 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 2. **Install Dependencies:**
-   - **Option 1: CPU & macOS (minimal, torch-free)**
+   > 📊 **Which one? A quick benchmark (RTX 3060 vs a 6-core desktop CPU, same model):**
+   >
+   > | | RTF (generation time ÷ audio length) | What it means |
+   > |---|---|---|
+   > | **CPU** fp32 (default) | **≈ 0.5–0.6** | ~2× faster than real-time — fine for one user / one stream at a time |
+   > | **CPU** int8 (`precision="int8"`) | **≈ 0.35** | ~3× real-time; needs a VNNI-capable CPU |
+   > | **GPU** batched (`infer` / `infer_batch`) | **≈ 0.02** | **~50× real-time** — 154 s of audio in 2.8 s; bulk/long-form synthesis |
+   > | **GPU** streaming (`infer_stream`) | ≈ 0.5 per stream, **16 streams at once** | first audio in ~115 ms; serving many listeners |
+   >
+   > Lower is better; RTF < 1 = faster than real-time. Full numbers: [docs/streaming.md](docs/streaming.md).
+
+   - **Option 1: CPU & macOS (minimal, torch-free)** — RTF ≈ 0.5, no GPU needed
 
      ```bash
      uv sync
      ```
-   - **Option 2: GPU** — **v3 Turbo on GPU (PyTorch)**
+   - **Option 2: GPU** — **v3 Turbo on GPU (PyTorch)** — RTF ≈ 0.02 batched, 16 real-time streams
 
      ```bash
      uv sync --extra cuda
@@ -143,8 +154,8 @@ The `vieneu` SDK **defaults to VieNeu-TTS v3 Turbo (48 kHz)**. The minimal insta
 
 ### Quick Start
 
-**CPU (default)** — torch-free, runs v3 Turbo via ONNX Runtime. Most users want this:
-> ⚡**On CPU the backbone runs `fp32` by default** (maximum fidelity). Need more speed? Pass `Vieneu(precision="int8")` — ~1.6× faster and ~4× smaller, but it requires a CPU with VNNI (AVX-512 VNNI / AVX-VNNI); on older CPUs int8 can produce garbled audio. `precision` only affects the CPU/ONNX path; on GPU it's ignored (PyTorch).
+**CPU (default)** — torch-free, runs v3 Turbo via ONNX Runtime. Most users want this. **RTF ≈ 0.5 on a 6-core desktop** (a 10 s sentence takes ~5 s; ~2× faster than real-time, first streamed audio in ~300 ms):
+> ⚡**On CPU the backbone runs `fp32` by default** (maximum fidelity). Need more speed? Pass `Vieneu(precision="int8")` — **RTF ≈ 0.35**, ~1.6× faster and ~4× smaller, but it requires a CPU with VNNI (AVX-512 VNNI / AVX-VNNI); on older CPUs int8 can produce garbled audio. `precision` only affects the CPU/ONNX path; on GPU it's ignored (PyTorch).
 >
 > 🪶 **Still too slow, or deploying on a phone / ARM board?** Try **[VieNeu-TTS v3 Nano (preview)](#v3-nano)** — `Vieneu(mode="v3nano")`, ~3× faster than Turbo fp32 on CPU (RTF 0.11–0.22 on a desktop CPU), but **noticeably lower quality** (especially English / bilingual), 24 kHz, 11 preset voices + voice cloning. Details and caveats in the [v3 Nano section](#v3-nano) below.
 
@@ -152,15 +163,22 @@ The `vieneu` SDK **defaults to VieNeu-TTS v3 Turbo (48 kHz)**. The minimal insta
 pip install vieneu
 ```
 
-**GPU (CUDA)** — only if you have an NVIDIA GPU. On Linux `pip install "vieneu[cuda]"` is enough (PyPI torch ships CUDA there); on Windows install the CUDA torch **first** as below. 
-> ℹ️ **How fast is the GPU path?** Since 3.7.0 every audio frame is **one CUDA
-> graph** (acoustic decoder + sampling + repetition penalty + backbone step in a
-> single replay — no `torch.compile`, no C++ toolchain needed). Measured on an
-> RTX 3060: a 3.5 s sentence in **0.36 s**; a 2-chunk paragraph (19 s) in
-> **1.4 s**; 16 chunks (154 s) in **2.8 s** (RTF 0.02) — previously 2.3 s /
-> 8.7 s / 16.7 s. The first call for each batch size pays ~0.5 s to capture the
-> graph (kept afterwards; servers can call `warm_fused()` at start-up).
-> `VIENEU_FUSED_FRAME=0` restores the plain loop.
+**GPU (CUDA)** — only if you have an NVIDIA GPU, and **~25× faster than the CPU path: RTF ≈ 0.02** on an RTX 3060 (154 s of audio in 2.8 s). On Linux `pip install "vieneu[cuda]"` is enough (PyPI torch ships CUDA there); on Windows install the CUDA torch **first** as below.
+> ⚡ **How fast is the GPU path?** Every audio frame is **one CUDA graph**
+> (acoustic decoder + sampling + repetition penalty + backbone step in a single
+> replay — no `torch.compile`, no C++ toolchain needed). Measured on an RTX 3060:
+>
+> | Workload | Time | RTF |
+> |---|---|---|
+> | One 3.5 s sentence | **0.36 s** | 0.10 |
+> | 2-chunk paragraph (19 s of audio) | **1.4 s** | 0.07 |
+> | 16 chunks batched (154 s of audio) | **2.8 s** | **0.02** |
+> | Streaming, 16 listeners at once | first audio ~115 ms each | ≈ 0.5 per stream |
+>
+> The same 154 s of audio takes ~85 s on a 6-core CPU. The first call for each
+> batch size pays ~0.5 s to capture the graph (kept afterwards; servers can
+> call `warm_fused()` at start-up). `VIENEU_FUSED_FRAME=0` restores the plain
+> loop.
 
 ```bash
 pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128

@@ -97,7 +97,18 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 2. **Cài đặt các phụ thuộc:**
-   - **Lựa chọn 1: CPU & macOS (tối giản, không cần torch) — khuyến nghị để đạt tốc độ tối đa** — chạy **v3 Turbo bằng ONNX**
+   > 📊 **Chọn cái nào? Benchmark nhanh (RTX 3060 so với CPU desktop 6 nhân, cùng model):**
+   >
+   > | | RTF (thời gian sinh ÷ độ dài audio) | Ý nghĩa |
+   > |---|---|---|
+   > | **CPU** fp32 (mặc định) | **≈ 0,5–0,6** | nhanh ~2× thời gian thực — đủ cho một người dùng / một luồng |
+   > | **CPU** int8 (`precision="int8"`) | **≈ 0,35** | ~3× thời gian thực; cần CPU có VNNI |
+   > | **GPU** batch (`infer` / `infer_batch`) | **≈ 0,02** | **~50× thời gian thực** — 154 s audio trong 2,8 s; sinh hàng loạt / văn bản dài |
+   > | **GPU** streaming (`infer_stream`) | ≈ 0,5 mỗi luồng, **16 luồng cùng lúc** | chunk đầu ~115 ms; phục vụ nhiều người nghe |
+   >
+   > Càng thấp càng tốt; RTF < 1 = nhanh hơn thời gian thực. Số đo đầy đủ: [docs/streaming.vi.md](docs/streaming.vi.md).
+
+   - **Lựa chọn 1: CPU & macOS (tối giản, không cần torch)** — chạy **v3 Turbo bằng ONNX**, RTF ≈ 0,5, không cần GPU
      > 💡 *Không cần GPU. Chỉ cài bộ ONNX nhẹ; **v3 Turbo chạy trên CPU (48 kHz)** với giọng mặc định, voice cloning và tag cảm xúc. Hoàn toàn không cài PyTorch.*
      >
      > ⚡ **Để CPU chạy nhanh nhất, hãy cài bằng `uv sync` — đừng dùng `pip install`.** `uv sync` dựng lại đúng môi trường đã khóa (lockfile) với bản ONNX Runtime đã tối ưu, nhờ đó đạt tốc độ tối đa ngay từ đầu.
@@ -106,7 +117,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
      ```bash
      uv sync
      ```
-   - **Lựa chọn 2: GPU** — **v3 Turbo chạy trên GPU (PyTorch)**
+   - **Lựa chọn 2: GPU** — **v3 Turbo chạy trên GPU (PyTorch)** — RTF ≈ 0,02 khi batch, 16 luồng streaming real-time
      > 💡 *Yêu cầu GPU NVIDIA CUDA (CUDA ≥ 12.8). Khuyến nghị cài [NVIDIA Toolkit](https://developer.nvidia.com/cuda-downloads). Extra `cuda` chỉ thêm torch + transformers để **v3 Turbo chạy trên GPU** — trên CUDA suy luận được **batch tự động** (cùng API, không đổi code). Các backend v1/v2 cũ (LMDeploy, llama-cpp) nằm ở `uv sync --group gpu`.*
 
      ```bash
@@ -150,13 +161,13 @@ SDK `vieneu` **mặc định dùng VieNeu-TTS v3 Turbo (48 kHz)**. Bản cài t�
 > ```
 
 ### Bắt đầu nhanh
-**CPU (mặc định)** — không cần torch, chạy v3 Turbo bằng ONNX Runtime. Đa số người dùng chọn cái này:
+**CPU (mặc định)** — không cần torch, chạy v3 Turbo bằng ONNX Runtime. Đa số người dùng chọn cái này. **RTF ≈ 0,5 trên CPU desktop 6 nhân** (câu 10 s sinh mất ~5 s, nhanh ~2× thời gian thực; audio stream đầu tiên sau ~300 ms). Cần nhanh hơn thì `Vieneu(precision="int8")` — RTF ≈ 0,35, cần CPU có VNNI:
 
 ```bash
 pip install vieneu
 ```
 
-**GPU (CUDA)** — chỉ khi bạn có GPU NVIDIA. Trên Linux `pip install "vieneu[cuda]"` là đủ (torch trên PyPI đã kèm CUDA); trên Windows cài torch CUDA **trước** như dưới. Trên CUDA, batch tự bật — cùng API, không đổi code:
+**GPU (CUDA)** — chỉ khi bạn có GPU NVIDIA, và **nhanh hơn CPU ~25 lần: RTF ≈ 0,02** trên RTX 3060 (154 s audio trong 2,8 s). Trên Linux `pip install "vieneu[cuda]"` là đủ (torch trên PyPI đã kèm CUDA); trên Windows cài torch CUDA **trước** như dưới. Trên CUDA, batch tự bật — cùng API, không đổi code:
 
 ```bash
 pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128
@@ -164,14 +175,20 @@ pip install "transformers==4.57.6"   # Qwen3 backbone + MOSS codec (bản ổn �
 pip install vieneu
 ```
 
-> ℹ️ **GPU nhanh cỡ nào?** Từ 3.7.0 mỗi khung âm thanh là **một CUDA graph**
-> (acoustic + sampling + phạt lặp + backbone gộp một lần phát, không cần
-> `torch.compile` hay trình biên dịch C++). Đo trên RTX 3060: một câu 3,5 s
-> mất **0,36 s**; đoạn 2 chunk (19 s) **1,4 s**; 16 chunk (154 s) **2,8 s**
-> (RTF 0,02) — trước đó lần lượt 2,3 s / 8,7 s / 16,7 s. Lần gọi đầu cho mỗi
-> cỡ batch tốn thêm ~0,5 s để capture graph (giữ lại cho các lần sau; server
-> có thể gọi `warm_fused()` lúc khởi động). `VIENEU_FUSED_FRAME=0` tắt để
-> quay về vòng lặp thường.
+> ⚡ **GPU nhanh cỡ nào?** Mỗi khung âm thanh là **một CUDA graph** (acoustic +
+> sampling + phạt lặp + backbone gộp một lần phát, không cần `torch.compile`
+> hay trình biên dịch C++). Đo trên RTX 3060:
+>
+> | Tác vụ | Thời gian | RTF |
+> |---|---|---|
+> | Một câu 3,5 s | **0,36 s** | 0,10 |
+> | Đoạn 2 chunk (19 s audio) | **1,4 s** | 0,07 |
+> | 16 chunk batch (154 s audio) | **2,8 s** | **0,02** |
+> | Streaming 16 người nghe cùng lúc | chunk đầu ~115 ms mỗi luồng | ≈ 0,5 mỗi luồng |
+>
+> Cùng 154 s audio đó CPU 6 nhân mất ~85 s. Lần gọi đầu cho mỗi cỡ batch tốn
+> thêm ~0,5 s để capture graph (giữ lại cho các lần sau; server gọi
+> `warm_fused()` lúc khởi động). `VIENEU_FUSED_FRAME=0` quay về vòng lặp thường.
 
 ```python
 from vieneu import Vieneu
