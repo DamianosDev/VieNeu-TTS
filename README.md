@@ -25,12 +25,13 @@
 > **🦜 VieNeu-TTS v3 Turbo is officially released!**
 > A brand-new architecture **designed and trained from scratch by Phạm Nguyễn Ngọc Bảo** (codec: [MOSS-Audio-Tokenizer-Nano](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-Nano); phonemizer: [sea-g2p](https://github.com/pnnbao97/sea-g2p)):
 > - **48 kHz** high-fidelity audio (up from 24 kHz).
-> - **Built-in default voices** — stable and consistent, no reference clip needed.
+> - **25 built-in preset voices** (10 editors' picks) — stable and consistent, no reference clip needed.
 > - **Natural reading style** everywhere — the style follows the reference voice (the `style` argument is deprecated and ignored).
 > - **Emotion / non-verbal cues** *(experimental)*: drop `[cười]`, `[thở dài]`, `[hắng giọng]` straight into the text.
 > - **Batched generation** (batch size up to 32), including a multi-speaker **Conversation** mode that batches the whole script regardless of speaker.
 > - **Instant voice cloning** from a 3–8s clip, with automatic reference denoising.
-> - **Real-time streaming + OpenAI-compatible API + Docker** — `POST /v1/audio/speech` drop-in for the OpenAI SDK / Pipecat / LiveKit; first audio in **~115 ms** and **16 concurrent streams under 200 ms** on a single RTX 3060 (32 max), CPU-only streaming too. See [§3](#docker-remote) and [docs/streaming.md](docs/streaming.md).
+> - **Real-time streaming + OpenAI-compatible API + Docker** — `POST /v1/audio/speech` drop-in for the OpenAI SDK / Pipecat / LiveKit; first audio in **~115 ms** and **16 concurrent streams under 200 ms** on a single RTX 3060 (32 max), CPU-only streaming too. See [§3](#docker-remote), [§4 Benchmarks](#benchmarks) and [docs/streaming.md](docs/streaming.md).
+> - **LoRA fine-tuning** — train your own voice or reading style on one consumer GPU ([§5](#finetune)).
 >
 > Try it in the Web UI (backbone **"VieNeu-TTS-v3-Turbo"**) or the SDK (`Vieneu(mode="v3turbo")`, the default).
 
