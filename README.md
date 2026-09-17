@@ -86,11 +86,12 @@
 1. [🦜 Installation & Web UI](#installation)
 2. [📦 Using the Python SDK](#sdk)
 3. [🐳 API Server & Docker](#docker-remote) — OpenAI-compatible streaming API (v3 Turbo) · legacy v2 server
-4. [🎓 Fine-tuning (LoRA)](#finetune)
-5. [🔬 Model Overview](#backbones)
-6. [🚀 Roadmap](#roadmap)
-7. [🤝 Support & Contact](#support)
-8. [📑 Citation](#citation)
+4. [📊 Benchmarks](#benchmarks) — every speed / latency number in one place (CPU vs GPU, batch, streaming, Nano)
+5. [🎓 Fine-tuning (LoRA)](#finetune)
+6. [🔬 Model Overview](#backbones)
+7. [🚀 Roadmap](#roadmap)
+8. [🤝 Support & Contact](#support)
+9. [📑 Citation](#citation)
 
 ---
 
@@ -117,16 +118,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 2. **Install Dependencies:**
-   > 📊 **Which one? A quick benchmark (RTX 3060 12 GB vs an Intel Core i5 12th gen, 6 P-cores, same model):**
-   >
-   > | | RTF (generation time ÷ audio length) | What it means |
-   > |---|---|---|
-   > | **CPU** fp32 (default) | **≈ 0.5–0.6** | ~2× faster than real-time — fine for one user / one stream at a time |
-   > | **CPU** int8 (`precision="int8"`) | **≈ 0.35** | ~3× real-time; needs a VNNI-capable CPU |
-   > | **GPU** batched (`infer` / `infer_batch`) | **≈ 0.02** | **~50× real-time** — 154 s of audio in 2.8 s; bulk/long-form synthesis |
-   > | **GPU** streaming (`infer_stream`) | ≈ 0.5 per stream, **16 streams at once** | first audio in ~115 ms; serving many listeners |
-   >
-   > Lower is better; RTF < 1 = faster than real-time. Full numbers: [docs/streaming.md](docs/streaming.md).
+   > 📊 **Which one?** CPU ≈ **RTF 0.5** (2× real-time, one stream) · GPU ≈ **RTF 0.02** batched (~50× real-time) and **16 real-time streams** — all measurements in [§4 Benchmarks](#benchmarks).
 
    - **Option 1: CPU & macOS (minimal, torch-free)** — RTF ≈ 0.5, no GPU needed
 
@@ -154,8 +146,8 @@ The `vieneu` SDK **defaults to VieNeu-TTS v3 Turbo (48 kHz)**. The minimal insta
 
 ### Quick Start
 
-**CPU (default)** — torch-free, runs v3 Turbo via ONNX Runtime. Most users want this. **RTF ≈ 0.5 on an Intel Core i5 12th gen (6 P-cores)** (a 10 s sentence takes ~5 s; ~2× faster than real-time, first streamed audio in ~300 ms):
-> ⚡**On CPU the backbone runs `fp32` by default** (maximum fidelity). Need more speed? Pass `Vieneu(precision="int8")` — **RTF ≈ 0.35**, ~1.6× faster and ~4× smaller, but it requires a CPU with VNNI (AVX-512 VNNI / AVX-VNNI); on older CPUs int8 can produce garbled audio. `precision` only affects the CPU/ONNX path; on GPU it's ignored (PyTorch).
+**CPU (default)** — torch-free, runs v3 Turbo via ONNX Runtime. Most users want this — **RTF ≈ 0.5** on a 12th-gen Core i5 (numbers in [§4 Benchmarks](#benchmarks)):
+> ⚡**On CPU the backbone runs `fp32` by default** (maximum fidelity). Need more speed? Pass `Vieneu(precision="int8")` — ~1.6× faster (RTF ≈ 0.35) and ~4× smaller, but it requires a CPU with VNNI (AVX-512 VNNI / AVX-VNNI); on older CPUs int8 can produce garbled audio. `precision` only affects the CPU/ONNX path; on GPU it's ignored (PyTorch).
 >
 > 🪶 **Still too slow, or deploying on a phone / ARM board?** Try **[VieNeu-TTS v3 Nano (preview)](#v3-nano)** — `Vieneu(mode="v3nano")`, ~3× faster than Turbo fp32 on CPU (RTF 0.11–0.22 on a desktop CPU), but **noticeably lower quality** (especially English / bilingual), 24 kHz, 11 preset voices + voice cloning. Details and caveats in the [v3 Nano section](#v3-nano) below.
 
@@ -163,22 +155,12 @@ The `vieneu` SDK **defaults to VieNeu-TTS v3 Turbo (48 kHz)**. The minimal insta
 pip install vieneu
 ```
 
-**GPU (CUDA)** — only if you have an NVIDIA GPU, and **~25× faster than the CPU path: RTF ≈ 0.02** on an RTX 3060 (154 s of audio in 2.8 s). On Linux `pip install "vieneu[cuda]"` is enough (PyPI torch ships CUDA there); on Windows install the CUDA torch **first** as below.
-> ⚡ **How fast is the GPU path?** Every audio frame is **one CUDA graph**
-> (acoustic decoder + sampling + repetition penalty + backbone step in a single
-> replay — no `torch.compile`, no C++ toolchain needed). Measured on an RTX 3060:
->
-> | Workload | Time | RTF |
-> |---|---|---|
-> | One 3.5 s sentence | **0.36 s** | 0.10 |
-> | 2-chunk paragraph (19 s of audio) | **1.4 s** | 0.07 |
-> | 16 chunks batched (154 s of audio) | **2.8 s** | **0.02** |
-> | Streaming, 16 listeners at once | first audio ~115 ms each | ≈ 0.5 per stream |
->
-> The same 154 s of audio takes ~85 s on the i5 12th gen CPU. The first call for each
-> batch size pays ~0.5 s to capture the graph (kept afterwards; servers can
-> call `warm_fused()` at start-up). `VIENEU_FUSED_FRAME=0` restores the plain
-> loop.
+**GPU (CUDA)** — only if you have an NVIDIA GPU; **~25× faster than the CPU path** (RTF ≈ 0.02 batched, 16 real-time streams — [§4 Benchmarks](#benchmarks)). On Linux `pip install "vieneu[cuda]"` is enough (PyPI torch ships CUDA there); on Windows install the CUDA torch **first** as below.
+> ⚡ Every audio frame on GPU is **one CUDA graph** (acoustic decoder + sampling +
+> repetition penalty + backbone step in a single replay — no `torch.compile`, no
+> C++ toolchain needed). The first call for each batch size pays ~0.5 s to capture
+> the graph (kept afterwards; servers can call `warm_fused()` at start-up).
+> `VIENEU_FUSED_FRAME=0` restores the plain loop.
 
 ```bash
 pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128
@@ -363,16 +345,7 @@ wav, sr = vieneu.denoise("noisy.wav", out_path="clean.wav")   # 44.1 kHz mono
 > - **11 preset voices + voice cloning** (`ref_audio`, `add_voice`, `encode_reference` work like Turbo; the three cloning graphs, ~110 MB, download on first use).
 > - **No frame-level streaming** — `infer_stream` yields one finished chunk at a time.
 
-Measured on the same desktop CPU (12th-gen Intel Core i5, 6 P-cores, 6 ONNX Runtime threads, ~9 s of speech):
-
-| Engine | RTF ↓ | Sample rate | Load time |
-|---|---|---|---|
-| v3 Turbo ONNX fp32 (default on CPU) | 0.62 | 48 kHz | ~19 s |
-| v3 Turbo ONNX int8 | 0.37 | 48 kHz | ~14 s |
-| **v3 Nano, 16 steps, cfg 3** (default) | **0.22** | 24 kHz | ~3 s |
-| **v3 Nano, 8 steps, sway −1** | **0.11** | 24 kHz | ~3 s |
-
-RTF = compute time ÷ audio duration (lower is faster; 0.22 = 4.5× faster than real time). The ratio carries over to slower machines: expect Nano to be roughly **1.7× faster than Turbo int8** and **~3× faster than Turbo fp32**, with a 282 MB download instead of Turbo's.
+On the same 12th-gen Core i5, Nano runs at **RTF 0.22** (16 steps) or **0.11** (8 steps) against Turbo's 0.62 fp32 / 0.37 int8 — about **3× faster than Turbo fp32**, with a 282 MB download and ~3 s load time. Full table in [§4 Benchmarks](#benchmarks).
 
 ```python
 from vieneu import Vieneu
@@ -527,7 +500,42 @@ tts = Vieneu(mode="v3turbo", backbone_repo="finetune/output/my_voice/merged")
 
 ---
 
-## 🎓 4. Fine-tuning (LoRA) <a name="finetune"></a>
+## 📊 4. Benchmarks <a name="benchmarks"></a>
+
+Every speed and latency number quoted in this README, measured on one machine so they are comparable:
+**RTX 3060 12 GB** · **Intel Core i5 12th gen (6 P-cores, 12 threads)** · Windows 11 · torch 2.8 + cu128 (bf16) · ONNX Runtime 1.24 (fp32/int8, 6 threads) · `vieneu` 3.8.x · September 2026. Reproduce with the snippets in [§2](#sdk) and `examples/openai_speech_client.py --bench N`.
+
+**RTF** = generation time ÷ audio duration — lower is faster, **< 1 is faster than real-time** (0.02 = 50× real-time). **TTFA** = time to the first audio chunk when streaming.
+
+### Throughput — how fast a whole text is synthesized
+
+| Engine / mode | RTF ↓ | Example | Notes |
+|---|---|---|---|
+| **GPU, batched** (`infer_batch`, or one long `infer`) | **0.011–0.02** | 30 sentences / 130 s of audio in **1.5–2.3 s**; 154 s in 2.8 s | first call per batch size +~0.5 s (CUDA-graph capture) |
+| **GPU, one sentence** (`infer`) | 0.10 | 3.5 s sentence in 0.36 s | launch-bound: a short sentence cannot fill the GPU |
+| **CPU v3 Turbo fp32** (default on CPU) | 0.55–0.62 | 10 s sentence in ~6 s | 48 kHz, load ~19 s |
+| **CPU v3 Turbo int8** (`precision="int8"`) | 0.35–0.37 | 10 s sentence in ~3.6 s | needs VNNI (AVX-512 VNNI / AVX-VNNI); load ~14 s |
+| **CPU v3 Nano**, 16 steps (default) | 0.22 | — | 24 kHz, lower quality; load ~3 s |
+| **CPU v3 Nano**, 8 steps, sway −1 | 0.11 | — | fastest, lowest quality |
+
+The GPU is **~25–50× faster than the CPU** on bulk work; on a *single short sentence* the gap shrinks to ~5× because the work is too small to fill the GPU.
+
+### Streaming — first-audio latency and concurrency (`infer_stream`, OpenAI API)
+
+| Backend | Concurrent streams | TTFA (first audio) | RTF per stream |
+|---|---|---|---|
+| **GPU**, 1 stream | 1 | **~115 ms** (106 ms over HTTP) | 0.49 |
+| **GPU**, 8 streams | 8 | 164 ms | 0.56 |
+| **GPU**, 16 streams (default `max_streams`) | 16 | 185 ms median (max 339 when all 16 start at once); **134 ms** for a request arriving while 15 play | 0.59 |
+| **GPU**, 32 streams (`max_streams=32`) | 32 | ~450 ms | 0.93 — still real-time, no margin |
+| **CPU** fp32 | 1 | 260–400 ms | 0.55–0.61 (two at once → 1.19, both stall) |
+| **CPU** int8 | 2 | 140–195 ms | 0.35 (two at once → 0.58–0.67) |
+
+Streams ≠ users: a stream lives only while a reply plays, so 16 streams ≈ 45–80 active voice-chat users. Set `max_streams` to the real load — every reserved slot adds ~2.5 ms to each codec call. After a few idle seconds the GPU parks at low clocks and the *first* request pays +100–300 ms (lock clocks with `nvidia-smi -lgc` or "prefer maximum performance"). VRAM: 1.1 GB peak at 16 streams. Estimates for other GPUs and the full method: **[docs/streaming.md](docs/streaming.md)**.
+
+---
+
+## 🎓 5. Fine-tuning (LoRA) <a name="finetune"></a>
 
 v3 Turbo already clones a voice from a clip of a few seconds. Fine-tune with **LoRA** when you need a tighter match than cloning, a specific reading style (storytelling, news, narration…), or better reading on your own domain. One voice needs about **10–30 minutes** of clean audio; 2–4 hours only when packing several voices into one model. Only a few million parameters are trained, so a ~6 GB GPU is enough.
 
@@ -547,7 +555,7 @@ The merged model keeps the full v3 Turbo API (cloning, presets, streaming) on th
 
 ---
 
-## 🔬 5. Model Overview <a name="backbones"></a>
+## 🔬 6. Model Overview <a name="backbones"></a>
 
 | Model | Format | Device | Bilingual | Features | Speed |
 |---|---|---|---|---|---|
@@ -560,7 +568,7 @@ The merged model keeps the full v3 Turbo API (cloning, presets, streaming) on th
 
 ---
 
-## 🚀 6. Roadmap <a name="roadmap"></a>
+## 🚀 7. Roadmap <a name="roadmap"></a>
 
 - [x] **VieNeu-TTS v3 Turbo** *(on-device, personal use)*: from-scratch 48 kHz architecture — preset voices, instant voice cloning, emotion cues, batched generation, multi-speaker conversation, frame-level streaming; torch-free on CPU.
 - [x] **VieNeu-TTS v3 Nano** *(preview)*: 48M flow-matching model for weak CPUs / edge devices — 11 preset voices + cloning, torch-free.
@@ -571,7 +579,7 @@ The merged model keeps the full v3 Turbo API (cloning, presets, streaming) on th
 
 ---
 
-## 🤝 7. Support & Contact <a name="support"></a>
+## 🤝 8. Support & Contact <a name="support"></a>
 
 - **Hugging Face:** [pnnbao-ump](https://huggingface.co/pnnbao-ump)
 - **Discord:** [Join our community](https://discord.gg/yJt8kzjzWZ)
@@ -579,7 +587,7 @@ The merged model keeps the full v3 Turbo API (cloning, presets, streaming) on th
 - **License:** Apache 2.0 (Free to use).
 
 ---
-## 📑 8. Citation <a name="citation"></a>
+## 📑 9. Citation <a name="citation"></a>
 
 ```bibtex
 @misc{vieneutts2026,

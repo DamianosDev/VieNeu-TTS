@@ -70,11 +70,12 @@
 1. [🦜 Cài đặt & Giao diện Web](#installation)
 2. [📦 Sử dụng Python SDK](#sdk)
 3. [🐳 API Server & Docker](#docker-remote) — API streaming chuẩn OpenAI (v3 Turbo) · server v2 cũ
-4. [🎓 Fine-tune (LoRA)](#finetune)
-5. [🔬 Tổng quan mô hình](#backbones)
-6. [🚀 Lộ trình phát triển](#roadmap)
-7. [🤝 Hỗ trợ & Liên hệ](#support)
-8. [📑 Trích dẫn](#citation)
+4. [📊 Benchmark](#benchmarks) — mọi số đo tốc độ / độ trễ ở một chỗ (CPU vs GPU, batch, streaming, Nano)
+5. [🎓 Fine-tune (LoRA)](#finetune)
+6. [🔬 Tổng quan mô hình](#backbones)
+7. [🚀 Lộ trình phát triển](#roadmap)
+8. [🤝 Hỗ trợ & Liên hệ](#support)
+9. [📑 Trích dẫn](#citation)
 
 ---
 
@@ -97,16 +98,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 2. **Cài đặt các phụ thuộc:**
-   > 📊 **Chọn cái nào? Benchmark nhanh (RTX 3060 12 GB so với Intel Core i5 thế hệ 12, 6 P-core, cùng model):**
-   >
-   > | | RTF (thời gian sinh ÷ độ dài audio) | Ý nghĩa |
-   > |---|---|---|
-   > | **CPU** fp32 (mặc định) | **≈ 0,5–0,6** | nhanh ~2× thời gian thực — đủ cho một người dùng / một luồng |
-   > | **CPU** int8 (`precision="int8"`) | **≈ 0,35** | ~3× thời gian thực; cần CPU có VNNI |
-   > | **GPU** batch (`infer` / `infer_batch`) | **≈ 0,02** | **~50× thời gian thực** — 154 s audio trong 2,8 s; sinh hàng loạt / văn bản dài |
-   > | **GPU** streaming (`infer_stream`) | ≈ 0,5 mỗi luồng, **16 luồng cùng lúc** | chunk đầu ~115 ms; phục vụ nhiều người nghe |
-   >
-   > Càng thấp càng tốt; RTF < 1 = nhanh hơn thời gian thực. Số đo đầy đủ: [docs/streaming.vi.md](docs/streaming.vi.md).
+   > 📊 **Chọn cái nào?** CPU ≈ **RTF 0,5** (nhanh 2× thời gian thực, một luồng) · GPU ≈ **RTF 0,02** khi batch (~50× thời gian thực) và **16 luồng streaming real-time** — toàn bộ số đo ở [§4 Benchmark](#benchmarks).
 
    - **Lựa chọn 1: CPU & macOS (tối giản, không cần torch)** — chạy **v3 Turbo bằng ONNX**, RTF ≈ 0,5, không cần GPU
      > 💡 *Không cần GPU. Chỉ cài bộ ONNX nhẹ; **v3 Turbo chạy trên CPU (48 kHz)** với giọng mặc định, voice cloning và tag cảm xúc. Hoàn toàn không cài PyTorch.*
@@ -161,13 +153,13 @@ SDK `vieneu` **mặc định dùng VieNeu-TTS v3 Turbo (48 kHz)**. Bản cài t�
 > ```
 
 ### Bắt đầu nhanh
-**CPU (mặc định)** — không cần torch, chạy v3 Turbo bằng ONNX Runtime. Đa số người dùng chọn cái này. **RTF ≈ 0,5 trên Intel Core i5 thế hệ 12 (6 P-core)** (câu 10 s sinh mất ~5 s, nhanh ~2× thời gian thực; audio stream đầu tiên sau ~300 ms). Cần nhanh hơn thì `Vieneu(precision="int8")` — RTF ≈ 0,35, cần CPU có VNNI:
+**CPU (mặc định)** — không cần torch, chạy v3 Turbo bằng ONNX Runtime. Đa số người dùng chọn cái này — **RTF ≈ 0,5** trên Core i5 thế hệ 12 (số đo ở [§4 Benchmark](#benchmarks)). Cần nhanh hơn thì `Vieneu(precision="int8")` — nhanh ~1,6× (RTF ≈ 0,35), cần CPU có VNNI:
 
 ```bash
 pip install vieneu
 ```
 
-**GPU (CUDA)** — chỉ khi bạn có GPU NVIDIA, và **nhanh hơn CPU ~25 lần: RTF ≈ 0,02** trên RTX 3060 (154 s audio trong 2,8 s). Trên Linux `pip install "vieneu[cuda]"` là đủ (torch trên PyPI đã kèm CUDA); trên Windows cài torch CUDA **trước** như dưới. Trên CUDA, batch tự bật — cùng API, không đổi code:
+**GPU (CUDA)** — chỉ khi bạn có GPU NVIDIA; **nhanh hơn CPU ~25 lần** (RTF ≈ 0,02 khi batch, 16 luồng streaming real-time — [§4 Benchmark](#benchmarks)). Trên Linux `pip install "vieneu[cuda]"` là đủ (torch trên PyPI đã kèm CUDA); trên Windows cài torch CUDA **trước** như dưới. Trên CUDA, batch tự bật — cùng API, không đổi code:
 
 ```bash
 pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128
@@ -175,20 +167,11 @@ pip install "transformers==4.57.6"   # Qwen3 backbone + MOSS codec (bản ổn �
 pip install vieneu
 ```
 
-> ⚡ **GPU nhanh cỡ nào?** Mỗi khung âm thanh là **một CUDA graph** (acoustic +
-> sampling + phạt lặp + backbone gộp một lần phát, không cần `torch.compile`
-> hay trình biên dịch C++). Đo trên RTX 3060:
->
-> | Tác vụ | Thời gian | RTF |
-> |---|---|---|
-> | Một câu 3,5 s | **0,36 s** | 0,10 |
-> | Đoạn 2 chunk (19 s audio) | **1,4 s** | 0,07 |
-> | 16 chunk batch (154 s audio) | **2,8 s** | **0,02** |
-> | Streaming 16 người nghe cùng lúc | chunk đầu ~115 ms mỗi luồng | ≈ 0,5 mỗi luồng |
->
-> Cùng 154 s audio đó CPU i5 thế hệ 12 mất ~85 s. Lần gọi đầu cho mỗi cỡ batch tốn
-> thêm ~0,5 s để capture graph (giữ lại cho các lần sau; server gọi
-> `warm_fused()` lúc khởi động). `VIENEU_FUSED_FRAME=0` quay về vòng lặp thường.
+> ⚡ Trên GPU mỗi khung âm thanh là **một CUDA graph** (acoustic + sampling + phạt
+> lặp + backbone gộp một lần phát, không cần `torch.compile` hay trình biên dịch
+> C++). Lần gọi đầu cho mỗi cỡ batch tốn thêm ~0,5 s để capture graph (giữ lại cho
+> các lần sau; server gọi `warm_fused()` lúc khởi động). `VIENEU_FUSED_FRAME=0`
+> quay về vòng lặp thường.
 
 ```python
 from vieneu import Vieneu
@@ -352,16 +335,7 @@ wav, sr = vieneu.denoise("noisy.wav", out_path="clean.wav")   # 44.1 kHz mono
 > - **11 giọng có sẵn + clone giọng** (`ref_audio`, `add_voice`, `encode_reference` dùng như Turbo; ba đồ thị clone ~110 MB tải ở lần dùng đầu).
 > - **Không streaming theo frame** — `infer_stream` trả từng chunk đã hoàn chỉnh.
 
-Đo trên cùng một CPU desktop (Intel Core i5 thế hệ 12, 6 P-core, 6 luồng ONNX Runtime, ~9 giây tiếng nói):
-
-| Engine | RTF ↓ | Sample rate | Thời gian nạp |
-|---|---|---|---|
-| v3 Turbo ONNX fp32 (mặc định trên CPU) | 0.62 | 48 kHz | ~19 s |
-| v3 Turbo ONNX int8 | 0.37 | 48 kHz | ~14 s |
-| **v3 Nano, 16 bước, cfg 3** (mặc định) | **0.22** | 24 kHz | ~3 s |
-| **v3 Nano, 8 bước, sway −1** | **0.11** | 24 kHz | ~3 s |
-
-RTF = thời gian tính ÷ thời lượng audio (càng nhỏ càng nhanh; 0.22 = nhanh gấp 4.5 lần thời gian thực). Tỉ lệ này giữ nguyên trên máy chậm hơn: Nano nhanh hơn Turbo int8 khoảng **1.7 lần** và Turbo fp32 khoảng **3 lần**, dung lượng tải 282 MB.
+Trên cùng Core i5 thế hệ 12, Nano đạt **RTF 0,22** (16 bước) hoặc **0,11** (8 bước) so với Turbo 0,62 fp32 / 0,37 int8 — nhanh hơn Turbo fp32 khoảng **3 lần**, dung lượng tải 282 MB, nạp ~3 s. Bảng đầy đủ ở [§4 Benchmark](#benchmarks).
 
 ```python
 from vieneu import Vieneu
@@ -516,7 +490,42 @@ tts = Vieneu(mode="v3turbo", backbone_repo="finetune/output/my_voice/merged")
 
 ---
 
-## 🎓 4. Fine-tune (LoRA) <a name="finetune"></a>
+## 📊 4. Benchmark <a name="benchmarks"></a>
+
+Mọi con số tốc độ / độ trễ trong README này, đo trên **cùng một máy** để so sánh được với nhau:
+**RTX 3060 12 GB** · **Intel Core i5 thế hệ 12 (6 P-core, 12 luồng)** · Windows 11 · torch 2.8 + cu128 (bf16) · ONNX Runtime 1.24 (fp32/int8, 6 luồng) · `vieneu` 3.8.x · tháng 9/2026. Tự đo lại bằng các đoạn mã ở [§2](#sdk) và `examples/openai_speech_client.py --bench N`.
+
+**RTF** = thời gian sinh ÷ thời lượng audio — càng thấp càng nhanh, **< 1 là nhanh hơn thời gian thực** (0,02 = nhanh 50×). **TTFA** = thời gian tới chunk audio đầu tiên khi streaming.
+
+### Thông lượng — sinh cả văn bản mất bao lâu
+
+| Engine / chế độ | RTF ↓ | Ví dụ | Ghi chú |
+|---|---|---|---|
+| **GPU, batch** (`infer_batch`, hoặc một `infer` văn bản dài) | **0,011–0,02** | 30 câu / 130 s audio trong **1,5–2,3 s**; 154 s trong 2,8 s | lần gọi đầu mỗi cỡ batch +~0,5 s (capture CUDA graph) |
+| **GPU, một câu** (`infer`) | 0,10 | câu 3,5 s trong 0,36 s | bị launch-bound: câu ngắn không lấp đầy GPU |
+| **CPU v3 Turbo fp32** (mặc định trên CPU) | 0,55–0,62 | câu 10 s trong ~6 s | 48 kHz, nạp ~19 s |
+| **CPU v3 Turbo int8** (`precision="int8"`) | 0,35–0,37 | câu 10 s trong ~3,6 s | cần VNNI (AVX-512 VNNI / AVX-VNNI); nạp ~14 s |
+| **CPU v3 Nano**, 16 bước (mặc định) | 0,22 | — | 24 kHz, chất lượng thấp hơn; nạp ~3 s |
+| **CPU v3 Nano**, 8 bước, sway −1 | 0,11 | — | nhanh nhất, chất lượng thấp nhất |
+
+GPU **nhanh hơn CPU ~25–50 lần** khi sinh hàng loạt; với *một câu ngắn* chênh lệch chỉ còn ~5 lần vì khối lượng việc quá nhỏ để lấp đầy GPU.
+
+### Streaming — độ trễ chunk đầu và số luồng đồng thời (`infer_stream`, API OpenAI)
+
+| Backend | Luồng đồng thời | TTFA (chunk đầu) | RTF mỗi luồng |
+|---|---|---|---|
+| **GPU**, 1 luồng | 1 | **~115 ms** (106 ms qua HTTP) | 0,49 |
+| **GPU**, 8 luồng | 8 | 164 ms | 0,56 |
+| **GPU**, 16 luồng (`max_streams` mặc định) | 16 | median 185 ms (max 339 khi cả 16 bắt đầu cùng lúc); **134 ms** cho request mới đến giữa 15 luồng đang phát | 0,59 |
+| **GPU**, 32 luồng (`max_streams=32`) | 32 | ~450 ms | 0,93 — vẫn real-time nhưng không còn biên |
+| **CPU** fp32 | 1 | 260–400 ms | 0,55–0,61 (2 request cùng lúc → 1,19, cả hai đứt) |
+| **CPU** int8 | 2 | 140–195 ms | 0,35 (2 cùng lúc → 0,58–0,67) |
+
+Luồng ≠ người dùng: một luồng chỉ tồn tại lúc phát một câu trả lời, nên 16 luồng ≈ 45–80 người dùng chatbot thoại. Đặt `max_streams` sát tải thật — mỗi slot thừa cộng ~2,5 ms vào mọi lời gọi codec. GPU rỗi vài giây sẽ hạ xung và request *đầu tiên* sau đó chậm thêm 100–300 ms (khoá xung bằng `nvidia-smi -lgc` hoặc "Prefer maximum performance"). VRAM: 1,1 GB đỉnh ở 16 luồng. Dự đoán cho GPU khác và phương pháp đo: **[docs/streaming.vi.md](docs/streaming.vi.md)**.
+
+---
+
+## 🎓 5. Fine-tune (LoRA) <a name="finetune"></a>
 
 v3 Turbo đã clone giọng từ một clip vài giây. Chỉ fine-tune bằng **LoRA** khi cần bám giọng chặt hơn clone, một phong cách đọc riêng (đọc truyện, tin tức, thuyết minh…), hoặc đọc tốt hơn trên miền văn bản của bạn. Một giọng cần khoảng **10–30 phút** audio sạch; 2–4 giờ chỉ khi gộp nhiều giọng vào một model. Chỉ vài triệu tham số được train nên GPU ~6 GB là đủ.
 
@@ -536,7 +545,7 @@ Model merge giữ nguyên toàn bộ API của v3 Turbo (clone, preset, streamin
 
 ---
 
-## 🔬 5. Tổng quan mô hình <a name="backbones"></a>
+## 🔬 6. Tổng quan mô hình <a name="backbones"></a>
 
 | Model | Định dạng | Thiết bị | Song ngữ | Tính năng | Tốc độ |
 |---|---|---|---|---|---|
@@ -552,7 +561,7 @@ Model merge giữ nguyên toàn bộ API của v3 Turbo (clone, preset, streamin
 
 ---
 
-## 🚀 6. Lộ trình phát triển <a name="roadmap"></a>
+## 🚀 7. Lộ trình phát triển <a name="roadmap"></a>
 
 - [x] **VieNeu-TTS v3 Turbo** *(chạy trên thiết bị, người dùng cá nhân)*: kiến trúc 48 kHz huấn luyện từ đầu — giọng dựng sẵn, clone giọng tức thì, tag cảm xúc, sinh theo lô, hội thoại nhiều người nói, streaming theo frame; chạy CPU không cần torch.
 - [x] **VieNeu-TTS v3 Nano** *(preview)*: model flow-matching 48M cho CPU yếu / thiết bị edge — 11 giọng dựng sẵn + clone giọng, không cần torch.
@@ -563,7 +572,7 @@ Model merge giữ nguyên toàn bộ API của v3 Turbo (clone, preset, streamin
 
 ---
 
-## 🤝 7. Hỗ trợ & Liên hệ <a name="support"></a>
+## 🤝 8. Hỗ trợ & Liên hệ <a name="support"></a>
 
 - **Hugging Face:** [pnnbao-ump](https://huggingface.co/pnnbao-ump)
 - **Discord:** [Tham gia cộng đồng](https://discord.gg/yJt8kzjzWZ)
@@ -571,7 +580,7 @@ Model merge giữ nguyên toàn bộ API của v3 Turbo (clone, preset, streamin
 - **Giấy phép:** Apache 2.0 (Sử dụng tự do).
 
 ---
-## 📑 8. Trích dẫn <a name="citation"></a>
+## 📑 9. Trích dẫn <a name="citation"></a>
 
 ```bibtex
 @misc{vieneutts2026,
