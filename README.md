@@ -557,14 +557,17 @@ The merged model keeps the full v3 Turbo API (cloning, presets, streaming) on th
 
 ## 🔬 6. Model Overview <a name="backbones"></a>
 
-| Model | Format | Device | Bilingual | Features | Speed |
-|---|---|---|---|---|---|
-| **VieNeu-TTS-v3-Turbo** *(default)* | PyTorch/ONNX | **GPU/CPU** | ✅ | **48 kHz, Default voices, Cloning, Emotion cues, Conversation, Streaming (OpenAI-compatible API)** | **Ultra Fast** — GPU: batched + 16 real-time streams at RTF ≈ 0.5; CPU int8: RTF 0.35 |
-| **VieNeu-TTS-v3-Nano** *(preview)* | ONNX | **weak CPU / edge** | ⚠️ weak | 24 kHz, 11 preset voices, cloning, emotion cues — **lower quality (esp. English / En-Vi)** | **Fastest on CPU (RTF 0.11–0.22 desktop)** |
-| **VieNeu-TTS-v2** | PyTorch | **GPU** | ✅ | **Podcast, En-Vi CS** | **Fast (LMDeploy)** |
-| **VieNeu-v2-CPU** | GGUF/ONNX | **CPU/Edge** | ✅ | **Podcast, En-Vi CS** | **Extreme Speed** |
-| **VieNeu-v2-Turbo** | GGUF/ONNX | **CPU/Edge** | ✅ | Lightweight En-Vi | **Ultra Fast** |
-| **VieNeu-TTS (v1)** | PyTorch | GPU/CPU | ❌ | Stable (Vi only) | Standard |
+| Model | Status | Format | Device | Bilingual | Features | Speed ([§4](#benchmarks)) |
+|---|---|---|---|---|---|---|
+| **VieNeu-TTS-v3** | 🔜 **Coming soon** | PyTorch | **GPU** | ✅ | 🤫 ? | ? |
+| **VieNeu-TTS-v3-Turbo** *(default)* | ✅ **Current** | PyTorch/ONNX | **GPU/CPU** | ✅ | **48 kHz, 25 preset voices, Cloning, Emotion cues, Conversation, Streaming (OpenAI-compatible API)** | **Ultra Fast** — GPU: RTF ≈ 0.02 batched, 16 real-time streams; CPU: RTF ≈ 0.5 (int8 0.35) |
+| **VieNeu-TTS-v3-Nano** | 🧪 Preview | ONNX | **weak CPU / edge** | ⚠️ weak | 24 kHz, 11 preset voices, cloning, emotion cues — **lower quality (esp. English / En-Vi)** | Fastest on CPU (RTF 0.11–0.22) |
+| VieNeu-TTS-v2 | ⛔ Deprecated | PyTorch | GPU | ✅ | Podcast, En-Vi CS | Fast (LMDeploy) |
+| VieNeu-v2-CPU | ⛔ Deprecated | GGUF/ONNX | CPU/Edge | ✅ | Podcast, En-Vi CS | Medium |
+| VieNeu-v2-Turbo | ⛔ Deprecated | GGUF/ONNX | CPU/Edge | ✅ | Lightweight En-Vi | Fast |
+| VieNeu-TTS (v1) | ⛔ Deprecated | PyTorch | GPU/CPU | ❌ | Stable (Vi only) | Slow |
+
+> ⛔ **Deprecated** models are no longer updated and are kept only for existing deployments; new projects should use **v3 Turbo** (and **v3** once released).
 
 ---
 
