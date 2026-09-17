@@ -37,6 +37,9 @@
 
 <h3>🎬 Demos</h3>
 
+> [!TIP]
+> Các tính năng **Lồng tiếng (Dubbing)**, **Bài giảng (Lecture)** và **Sách nói (Audiobook)** chỉ có trong [ứng dụng VieNeu chính thức](https://www.vieneu.io/#/download). Repo GitHub này chỉ cung cấp giao diện demo Gradio đơn giản và SDK lõi cho lập trình viên.
+
 <table>
   <tr>
     <td align="center">
@@ -63,6 +66,14 @@
         width="100%">
       </video>
     </td>
+    <td align="center" width="50%">
+      <b>Lecture</b><br><br>
+      <video
+        src="https://github.com/user-attachments/assets/de3b2d4e-4c50-4164-acdc-e3de90840e26"
+        controls
+        width="100%">
+      </video>
+    </td>
   </tr>
 </table>
 
@@ -81,6 +92,10 @@
 ---
 
 ## 🦜 1. Cài đặt & Giao diện Web <a name="installation"></a>
+> [!TIP]
+> **Dùng Windows?** Cách nhanh nhất là bộ cài độc lập tại **[vieneu.io/#/download](https://www.vieneu.io/#/download)** — không cần cài `uv` hay clone repo.
+> **macOS**: bộ cài tương tự sẽ có trong bản sắp tới; hiện tại dùng các bước `uv sync` bên dưới.
+> **Dùng Docker?** Bỏ qua các bước dưới: `--profile api-gpu` / `api-cpu` (API streaming chuẩn OpenAI) — xem [§3 API Server & Docker](#docker-remote).
 
 ### Thiết lập với `uv` (Khuyến nghị)
 `uv` là cách nhanh nhất để quản lý các phụ thuộc.
@@ -123,19 +138,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
    Truy cập giao diện tại `http://127.0.0.1:7860`.
 
-> [!TIP]
-> **Dùng Docker?** Bỏ qua các bước trên: `--profile api-gpu` / `api-cpu` (API streaming chuẩn OpenAI) — xem [§3 API Server & Docker](#docker-remote).
-
-### Docker (Web UI, chỉ v3 Turbo + v3 Nano)
-
-```bash
-# CPU — image không torch (v3 Turbo qua ONNX Runtime + v3 Nano)
-docker compose -f docker/docker-compose.yml --profile cpu up
-# GPU — v3 Turbo trên CUDA (PyTorch) — cần NVIDIA Container Toolkit
-docker compose -f docker/docker-compose.yml --profile gpu up
-```
-
-Sau đó mở http://localhost:7860. Image chỉ cài bộ v3 (không lmdeploy / llama-cpp / eSpeak); model tải về nằm trong volume `huggingface_cache`.
 
 ---
 
