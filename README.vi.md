@@ -41,8 +41,9 @@
 > Các tính năng **Lồng tiếng (Dubbing)**, **Bài giảng (Lecture)** và **Sách nói (Audiobook)** chỉ có trong [ứng dụng VieNeu chính thức](https://www.vieneu.io/#/download). Repo GitHub này chỉ cung cấp giao diện demo Gradio đơn giản và SDK lõi cho lập trình viên.
 
 <table>
+  <!-- Hàng 1 -->
   <tr>
-    <td align="center">
+    <td align="center" width="50%">
       <b>Voice Cloning</b><br><br>
       <video
         src="https://github.com/user-attachments/assets/021f6671-2d7f-4635-91fb-88b2ab0ddbcd"
@@ -50,7 +51,7 @@
         width="100%">
       </video>
     </td>
-    <td align="center">
+    <td align="center" width="50%">
       <b>Dubbing</b><br><br>
       <video
         src="https://github.com/user-attachments/assets/5888aea1-4f32-4397-9dd9-9c7b743d31bd"
@@ -58,7 +59,10 @@
         width="100%">
       </video>
     </td>
-    <td align="center">
+  </tr>
+  <!-- Hàng 2 -->
+  <tr>
+    <td align="center" width="50%">
       <b>Dubbing / Conversation</b><br><br>
       <video
         src="https://github.com/user-attachments/assets/28104b78-2d55-4914-85b7-5f425a7e99da"
