@@ -549,7 +549,7 @@ The merged model speaks that one voice from its packed speaker embedding (no ref
 | Model | Status | Format | Device | Bilingual | Features | Speed ([§4](#benchmarks)) |
 |---|---|---|---|---|---|---|
 | **VieNeu-TTS-v3** | 🔜 **Coming soon** | PyTorch | **GPU** | ✅ | ? | ? |
-| **VieNeu-TTS-v3-Turbo** *(default)* | ✅ **Current** | PyTorch/ONNX | **GPU/CPU** | ✅ | **48 kHz, 25 preset voices, Cloning, Emotion cues, Conversation, Streaming (OpenAI-compatible API)** | **Ultra Fast** — GPU: RTF ≈ 0.02 batched, 16 real-time streams; CPU: RTF ≈ 0.5 (int8 0.35) |
+| **VieNeu-TTS-v3-Turbo** *(default)* | 🦜 **Current** | PyTorch/ONNX | **GPU/CPU** | ✅ | **48 kHz, 25 preset voices, Cloning, Emotion cues, Conversation, Streaming (OpenAI-compatible API)** | **Ultra Fast** — GPU: RTF ≈ 0.02 batched, 16 real-time streams; CPU: RTF ≈ 0.5 (int8 0.35) |
 | **VieNeu-TTS-v3-Nano** | 🧪 Preview | ONNX | **weak CPU / edge** | ⚠️ weak | 24 kHz, 11 preset voices, cloning, emotion cues — **lower quality (esp. English / En-Vi)** | Fastest on CPU (RTF 0.11–0.22) |
 | VieNeu-TTS-v2 | ⛔ Deprecated | PyTorch | GPU | ✅ | Podcast, En-Vi CS | Fast (LMDeploy) |
 | VieNeu-v2-CPU | ⛔ Deprecated | GGUF/ONNX | CPU/Edge | ✅ | Podcast, En-Vi CS | Medium |
