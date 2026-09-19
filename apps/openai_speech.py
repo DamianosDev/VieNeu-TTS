@@ -123,6 +123,14 @@ class Engine:
         log.info("✅ ready in %.1fs: backend=%s max_streams=%d queue=%d", time.perf_counter() - t,
                  self.backend, self.max_streams, self.max_queue)
 
+    def voices(self) -> list:
+        out = []
+        for name, v in self.tts._preset_voices.items():
+            out.append({"id": name, "name": name, "description": v.get("description", ""),
+                        "gender": v.get("gender", ""), "featured": v.get("featured"),
+                        "aliases": list(v.get("aliases") or [])})
+        return out
+
     def acquire(self) -> None:
         with self._lock:
             if self.waiting >= self.max_queue:
@@ -143,13 +151,43 @@ class Engine:
             self.active -= 1
         self._gate.release()
 
-    def voices(self) -> list:
-        out = []
-        for name, v in self.tts._preset_voices.items():
-            out.append({"id": name, "name": name, "description": v.get("description", ""),
-                        "gender": v.get("gender", ""), "featured": v.get("featured"),
-                        "aliases": list(v.get("aliases") or [])})
-        return out
+
+class _Slot:
+    """One request's hold on a stream slot, released exactly once — by the
+    audio generator when it finishes, or by the response when the client left
+    before the body ever started (an unstarted generator never runs its
+    ``finally``, so relying on it alone leaks the slot and 429s forever)."""
+
+    def __init__(self, eng: Engine):
+        self._eng = eng
+        self._lock = threading.Lock()
+        self._held = True
+
+    def release(self) -> bool:
+        with self._lock:
+            if not self._held:
+                return False
+            self._held = False
+        self._eng.release()
+        return True
+
+
+class _SlotStreamingResponse(StreamingResponse):
+    """Frees the request's slot however the response ends: finished, client
+    disconnect (Starlette skips ``background`` then), or a send error."""
+
+    def __init__(self, content, slot: _Slot, rid: str, **kw):
+        super().__init__(content, **kw)
+        self._slot = slot
+        self._rid = rid
+
+    async def __call__(self, scope, receive, send) -> None:
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            if self._slot.release():
+                log.info("%s released: client gone before the stream finished, active=%d",
+                         self._rid, self._slot._eng.active)
 
 
 ENGINE: Optional[Engine] = None
@@ -242,7 +280,7 @@ class SpeechRequest(BaseModel):
     max_chars: int = 256
 
 
-def _speech_chunks(eng: Engine, req: SpeechRequest, rid: str) -> Iterator[np.ndarray]:
+def _speech_chunks(eng: Engine, slot: _Slot, req: SpeechRequest, rid: str) -> Iterator[np.ndarray]:
     """float32 chunks at ``req.sample_rate``; logs TTFA / RTF; holds one stream slot."""
     t0 = time.perf_counter()
     first = None
@@ -266,7 +304,7 @@ def _speech_chunks(eng: Engine, req: SpeechRequest, rid: str) -> Iterator[np.nda
         if len(tail):
             yield tail
     finally:
-        eng.release()
+        slot.release()
         total = time.perf_counter() - t0
         audio_s = emitted / SAMPLE_RATE
         log.info("%s done: ttfa=%s total=%.2fs audio=%.2fs rtf=%s active=%d", rid,
@@ -307,17 +345,23 @@ def speech(req: SpeechRequest):
     if req.voice and eng.tts.resolve_voice_name(req.voice) is None:
         raise HTTPException(400, f"unknown voice '{req.voice}'; see GET /v1/voices")
     rid = f"spk-{uuid.uuid4().hex[:8]}"
-    eng.acquire()   # 429 if the server is full; released when the stream ends
-    chunks = _speech_chunks(eng, req, rid)
-    headers = {"X-Request-Id": rid, "X-Sample-Rate": str(req.sample_rate), "Cache-Control": "no-store"}
-    ignored = [k for k in ("speed", "instructions") if getattr(req, k) is not None]
-    if ignored:
-        headers["X-VieNeu-Ignored"] = ",".join(ignored)
-    if req.stream_format == "sse":
-        return StreamingResponse(_sse_body(chunks, fmt, req.sample_rate),
-                                 media_type="text/event-stream", headers=headers)
-    media = "audio/wav" if fmt == "wav" else "audio/pcm"
-    return StreamingResponse(_audio_body(chunks, fmt, req.sample_rate), media_type=media, headers=headers)
+    eng.acquire()   # 429 if the server is full; released when the response ends
+    slot = _Slot(eng)
+    try:
+        chunks = _speech_chunks(eng, slot, req, rid)
+        headers = {"X-Request-Id": rid, "X-Sample-Rate": str(req.sample_rate), "Cache-Control": "no-store"}
+        ignored = [k for k in ("speed", "instructions") if getattr(req, k) is not None]
+        if ignored:
+            headers["X-VieNeu-Ignored"] = ",".join(ignored)
+        if req.stream_format == "sse":
+            return _SlotStreamingResponse(_sse_body(chunks, fmt, req.sample_rate), slot, rid,
+                                          media_type="text/event-stream", headers=headers)
+        media = "audio/wav" if fmt == "wav" else "audio/pcm"
+        return _SlotStreamingResponse(_audio_body(chunks, fmt, req.sample_rate), slot, rid,
+                                      media_type=media, headers=headers)
+    except BaseException:
+        slot.release()
+        raise
 
 
 # ── discovery ────────────────────────────────────────────────────────────────
