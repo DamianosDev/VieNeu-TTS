@@ -1,0 +1,20 @@
+# Example user pronunciation file for VieNeu-TTS.
+#
+# Point VIENEU_PRONUNCIATIONS (env) or Vieneu(..., pronunciations=<path>) at a
+# copy of a file like this. It is layered on top of the built-in overrides
+# (src/vieneu/assets/pronunciations_default.txt) and wins on conflicts.
+#
+# Format, one rule per line:
+#   term = spoken form
+#
+# - Blank lines and lines starting with # are ignored.
+# - Matching is whole-word (not inside another word), longest term first, one
+#   pass — the spoken form is never re-matched against other rules.
+# - A term with an uppercase letter matches case-sensitively; an all-lowercase
+#   term matches case-insensitively.
+# - The spoken form may contain <en>...</en> to force English phonemes.
+#
+# Examples:
+Nike = <en>Nike</en>
+dubmeet = <en>dubmeet</en>
+Minh Quân Pro = Minh Quân Pro
