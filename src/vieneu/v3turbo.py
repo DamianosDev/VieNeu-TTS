@@ -147,11 +147,19 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         max_batch_size: int = 32,   # GPU/PyTorch: trần số chunk gộp vào một forward (static batching). Batch thực = min(số_chunk, max_batch_size). Bỏ qua trên CPU/ONNX.
         max_streams: int = 16,   # GPU/PyTorch: số luồng `infer_stream` phục vụ đồng thời (continuous batching, một CUDA graph). Đo trên RTX 3060: 8 luồng chunk đầu ~135 ms, 16 ~200 ms, 32 ~260 ms. Bỏ qua trên CPU/ONNX.
         babble_retries: int = BABBLE_MAX_RETRIES,   # chunk <= 3 tiếng mà "nói thêm" (nhiều cụm âm hơn số tiếng) thì sinh lại tối đa N lần; 0 = tắt
+        text_rules: bool = True,   # rewrite ambiguous English words, URLs, paths into <en>...</en> before normalization (see vieneu_utils.text_rules)
+        pronunciations: Optional[Union[str, Path]] = None,   # optional user pronunciation file, layered on top of the built-in overrides
         **kwargs: Any,
     ):
         super().__init__()
         self.sample_rate = 48_000
         self.babble_retries = max(0, int(babble_retries))
+        self.text_rules = bool(text_rules)
+        self._pronunciation_overrides: Optional[Dict[str, str]] = None
+        if pronunciations:
+            from vieneu_utils.text_rules import load_pronunciation_file
+            self._pronunciation_overrides = load_pronunciation_file(pronunciations)
+            logger.info(f"📖 Loaded {len(self._pronunciation_overrides)} pronunciation override(s) from {pronunciations}")
 
         # `precision` chỉ áp cho đường ONNX/CPU (chọn subfolder graph int8 vs fp32).
         # Đường PyTorch/GPU dùng torch fp32/bf16, không liên quan.
@@ -614,7 +622,9 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         """
         speaker_emb, ref_codes = self._resolve_ref(voice, ref_audio, denoise, use_ref_codes)
 
-        chunks, gaps = normalize_to_chunks_v3_with_gaps(text, max_chars=max_chars)
+        chunks, gaps = normalize_to_chunks_v3_with_gaps(
+            text, max_chars=max_chars, text_rules=self.text_rules, pronunciations=self._pronunciation_overrides,
+        )
         if not chunks:
             return np.array([], dtype=np.float32)
 
@@ -663,7 +673,9 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         streaming runs, one call at a time.
         """
         speaker_emb, ref_codes = self._resolve_ref(voice, ref_audio, denoise, use_ref_codes)
-        chunks, gaps = normalize_to_chunks_v3_with_gaps(text, max_chars=max_chars)
+        chunks, gaps = normalize_to_chunks_v3_with_gaps(
+            text, max_chars=max_chars, text_rules=self.text_rules, pronunciations=self._pronunciation_overrides,
+        )
         pauses = gaps_to_silence(gaps)
         sampling = dict(
             temperature=temperature, top_k=top_k, top_p=top_p,
@@ -798,7 +810,9 @@ class V3TurboVieNeuTTS(BaseVieneuTTS):
         flat_chunks: List[str] = []
         owner: List[int] = []
         for ti, t in enumerate(texts):
-            chunks, gaps = normalize_to_chunks_v3_with_gaps(t, max_chars=max_chars)
+            chunks, gaps = normalize_to_chunks_v3_with_gaps(
+                t, max_chars=max_chars, text_rules=self.text_rules, pronunciations=self._pronunciation_overrides,
+            )
             per_text_gaps.append(gaps)
             for c in chunks:
                 flat_chunks.append(c)
