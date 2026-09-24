@@ -92,16 +92,49 @@ tts.save(audio, "out.wav")
 
 Lưu ý: model merge được dạy cho **một giọng**; muốn nó clone giọng khác thì dùng model gốc. (`make_voice.py --with-ref-codes` chỉ dành cho đóng gói giọng cho model gốc.)
 
+## 5. Đo và sửa cách phát âm
+
+Nhiều lỗi phát âm (từ tiếng Anh viết giống tiếng Việt như "no", "can", "do"; URL; email; đường dẫn; identifier kiểu
+`getUserName`) là lỗi **phiên âm trước khi vào model**, không sửa được bằng train. `src/vieneu_utils/text_rules.py`
+viết lại text trước khi sea-g2p chuẩn hoá — bọc phần tiếng Anh trong `<en>…</en>` (sea-g2p đã hỗ trợ sẵn), đọc các
+ký hiệu (`.` → "chấm", `/` → "gạch chéo", `?` → "hỏi", `=` → "bằng", …), và chỉ bọc một từ mơ hồ (`no`, `can`, …)
+thành tiếng Anh khi cùng câu có từ tiếng Anh rõ ràng khác. Áp dụng tự động trong `Vieneu(mode="v3turbo", ...)`
+(`text_rules=True` mặc định) và trong `prepare_dataset.py`, nên audio train và audio suy luận luôn phiên âm giống
+nhau. Sửa thêm một từ riêng (không cần sửa code) bằng file override `term = spoken form`, một dòng một cặp, nạp qua
+`pronunciations=<đường dẫn file>` — xem `finetune/pronunciation/pronunciations.example.txt`.
+
+Đo trước khi sửa bằng `finetune/pronunciation_eval.py`: cho một bộ câu (`--sentences <file>.txt`), sinh vài lượt đọc
+mỗi câu, phiên âm lại bằng Whisper, và tính character error rate so với chính câu đó sau khi qua cùng pipeline
+chuẩn hoá — nên sửa text đúng không bao giờ bị tính là lỗi:
+
+```bash
+uv run python finetune/pronunciation_eval.py --sentences heldout.txt --voice "Giọng của tôi" \
+    --whisper-url http://127.0.0.1:6863 --takes 3 --run baseline
+```
+
+Ghi `finetune/output/eval/<run>/summary.json` (CER và tỉ lệ đạt theo từng câu và tổng thể) và `wavs/` để nghe lại
+từng câu — CER thấp không chắc là nghe hay, nên câu ở gần ngưỡng đạt/rớt nên nghe trực tiếp trước khi kết luận.
+
+Muốn train mà không cần thu âm người thật: `finetune/make_distill_dataset.py` cho model tự đọc một bộ câu nhiều
+lượt, chỉ giữ lượt nào Whisper phiên âm đúng (CER thấp hơn `--pass-cer`, mặc định khắt khe hơn ngưỡng đo ở trên),
+rồi ghi ra đúng layout mục 1 (`metadata.csv` + `raw_audio/`) để đưa thẳng vào `prepare_dataset.py`. Câu nào không
+lượt nào đúng bị bỏ và ghi vào `candidates.csv` là "never-correct" — thường là từ cần override, hoặc chỉ đơn giản
+là câu khó, train không giúp được.
+
 ## Cấu trúc code
 
 ```
 finetune/
-  prepare_dataset.py   audio + text (một người nói)  →  train.parquet
-  train_lora.py        train LoRA (peft)
-  merge_lora.py        adapter + base  →  model đầy đủ, tuỳ chọn push Hub
-  make_voice.py        clip  →  voices_v3_turbo.json (speaker embedding, không mã tham chiếu)
+  prepare_dataset.py       audio + text (một người nói)  →  train.parquet
+  train_lora.py            train LoRA (peft)
+  merge_lora.py            adapter + base  →  model đầy đủ, tuỳ chọn push Hub
+  make_voice.py            clip  →  voices_v3_turbo.json (speaker embedding, không mã tham chiếu)
+  pronunciation_eval.py    đo CER/tỉ lệ đạt của một giọng trên một bộ câu (mục 5)
+  make_distill_dataset.py  model tự đọc, giữ lượt đúng  →  dataset cho mục 1 (mục 5)
   vieneu_lora/
-    data.py            dựng chuỗi token 2 chiều và nhãn từ một hàng dữ liệu (không ref)
-    model.py           forward teacher-forcing + loss trên model của SDK
-    lora.py            gắn, lưu, nạp, merge, export LoRA
+    data.py                dựng chuỗi token 2 chiều và nhãn từ một hàng dữ liệu (không ref)
+    model.py               forward teacher-forcing + loss trên model của SDK
+    lora.py                gắn, lưu, nạp, merge, export LoRA
+
+../src/vieneu_utils/text_rules.py   viết lại text (từ mơ hồ, URL, ký hiệu) trước khi phiên âm (mục 5)
 ```
