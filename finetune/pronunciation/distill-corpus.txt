@@ -1,0 +1,859 @@
+# Self-distillation corpus for VieNeu-TTS "Minh Quan Pro" (Northern Vietnamese male voice).
+# Purpose: original sentences the voice reads to build a pronunciation-focused training set.
+# Format: one sentence per line, plain text as a user or translation model would write it.
+# Lines starting with "# " are comments. Blank lines separate sections.
+
+# 1. Everyday Vietnamese narration and dialogue, all tones, Northern usage (target: 220)
+Sáng nay trời se lạnh, mình mặc thêm áo khoác rồi mới ra khỏi nhà.
+Mẹ tôi thường dậy từ năm giờ sáng để đồ xôi cho cả nhà.
+Chiếc xe đạp cũ vẫn nằm ở góc sân, phủ một lớp bụi mỏng.
+Tối qua chúng tôi đi dạo quanh hồ Gươm đến tận khuya mới về.
+Cô giáo dặn cả lớp nộp bài tập trước thứ sáu tuần này.
+Anh có biết đường ra bưu điện gần nhất không ạ?
+Bà nội kể chuyện ngày xưa bằng giọng chậm rãi và ấm áp.
+Quả bưởi Diễn này ngọt lịm, vỏ mỏng mà lại mọng nước.
+Mưa phùn lất phất suốt buổi chiều làm đường phố trơn trượt.
+Tôi vừa mua một chậu lan tím để trên bậu cửa sổ.
+Cậu bé nghiêng đầu nhìn con mèo đang ngủ khoanh tròn trên ghế.
+Con đường làng ngoằn ngoèo uốn quanh những thửa ruộng xanh mướt.
+Ông ngoại tôi ngày nào cũng tưới cây và đọc báo buổi sáng.
+Chị ấy khuỵu gối xuống để buộc lại dây giày cho đứa em.
+Gió mùa đông bắc tràn về khiến nhiệt độ giảm mạnh về đêm.
+Mình đói bụng quá, hay là mình đi ăn phở cuốn đi?
+Tiếng ve râm ran báo hiệu mùa hè đã thực sự đến.
+Bác bảo vệ khóa cổng trường đúng mười giờ tối mỗi ngày.
+Những chiếc lá bàng đỏ rực rơi đầy trên vỉa hè.
+Em gái tôi đang tập đàn piano cho buổi biểu diễn cuối năm.
+Chúng ta nên tắt bớt đèn khi không dùng để tiết kiệm điện.
+Hàng xóm nhà tôi nuôi một đàn gà ri ở sau vườn.
+Cuối tuần này cả nhà định về quê thăm họ hàng.
+Tôi thích uống một tách trà nóng trong những ngày mưa rả rích.
+Đứa trẻ khóc ré lên khi quả bóng bay tuột khỏi tay.
+Chiếc thuyền nan chòng chành giữa dòng sông đục ngầu phù sa.
+Bạn nhớ mang theo ô vì chiều nay có thể có dông.
+Cửa hàng đầu ngõ bán đủ thứ, từ kim chỉ đến gạo và nước mắm.
+Anh trai tôi mới học xong khóa lái xe ô tô hồi tháng trước.
+Khoảnh khắc mặt trời lặn trên biển thật khó quên.
+Người bán hàng rong cất tiếng rao lanh lảnh khắp phố cổ.
+Ngày mai tôi phải đi khám răng, hơi lo một chút.
+Cái quạt trần kêu cọt kẹt mỗi khi bật số lớn.
+Cô ấy khẽ mỉm cười rồi quay đi không nói một lời.
+Chú chó nhỏ vẫy đuôi mừng rỡ khi thấy chủ về.
+Dưới gốc đa đầu làng, mấy cụ già đang ngồi đánh cờ tướng.
+Bữa cơm tối có canh cua rau đay, cà pháo và đậu phụ rán.
+Tôi quên mất chìa khóa ở văn phòng nên phải quay lại lấy.
+Trên đỉnh núi, sương muối phủ trắng những bụi cỏ lúc rạng sáng.
+Học sinh xếp hàng ngay ngắn chào cờ vào sáng thứ hai.
+Mùi hoa sữa nồng nàn lan khắp các con phố cuối thu.
+Cái tủ lạnh nhà mình hình như bị hỏng ngăn đá rồi.
+Hai anh em thay nhau đẩy chiếc xe máy chết máy về nhà.
+Thuở nhỏ, tôi hay trèo lên cây ổi sau nhà để hái quả.
+Chuyến tàu đêm Hà Nội đi Lào Cai khởi hành lúc chín giờ.
+Bạn có muốn thêm đường vào cà phê không?
+Tiếng chuông chùa ngân vang giữa buổi chiều tĩnh lặng.
+Cơn bão số ba đã làm đổ nhiều cây xanh trên các tuyến phố.
+Ông ấy nói nhỏ nhẹ nhưng ai cũng phải lắng nghe.
+Mình đã dọn dẹp xong phòng khách, giờ đến lượt nhà bếp.
+Chiếc áo len này do bà đan tặng tôi từ mùa đông năm ngoái.
+Trên cánh đồng, những bó lúa vàng óng đang chờ được gánh về.
+Thằng bé loay hoay mãi mà không lắp được mô hình.
+Chị Quỳnh vừa được nhận vào làm ở một công ty kiến trúc.
+Đêm qua tôi mất ngủ vì tiếng chó sủa liên hồi.
+Những ngôi nhà ống san sát nhau dọc hai bên phố Hàng Bạc.
+Cả xóm xôn xao vì nhà bác Tư mới đón cháu đích tôn.
+Tôi thường ghi chép mọi việc vào một cuốn sổ tay nhỏ.
+Đi bộ ba mươi phút mỗi ngày giúp cơ thể khỏe khoắn hơn.
+Cô bé ngượng ngùng giấu mặt sau lưng mẹ.
+Chúng mình hẹn nhau ở quán nước chè chén đầu ngõ nhé.
+Ánh trăng rằm soi sáng cả mặt ao phẳng lặng.
+Thầy hiệu trưởng phát biểu khai giảng rất ngắn gọn mà xúc động.
+Cái nồi cơm điện này dùng đã hơn mười năm vẫn còn tốt.
+Tôi khuyên cậu nên nghỉ ngơi thay vì cố thức khuya.
+Nước sông dâng cao sau mấy ngày mưa lớn liên tiếp.
+Bạn làm ơn đóng giúp tôi cánh cửa sổ được không?
+Chợ quê họp từ tờ mờ sáng và tan trước giờ trưa.
+Anh Huỳnh luôn đến sớm mười lăm phút trong mọi cuộc hẹn.
+Những bức tranh Đông Hồ mang đậm hồn quê Việt.
+Đôi giày này hơi chật, cho tôi đổi sang cỡ lớn hơn nhé.
+Con đò ngang chở khách qua sông từ sáng đến tối.
+Mình thấy hơi chóng mặt, chắc tại đứng dưới nắng lâu quá.
+Lũ trẻ nô đùa ầm ĩ trên bãi cỏ trước nhà văn hóa.
+Ông lão ngư dân vá lưới bên mạn thuyền dưới bóng chiều.
+Bánh chưng ngày Tết phải gói bằng lá dong mới đúng vị.
+Tôi đã đọc xong cuốn tiểu thuyết đó chỉ trong hai buổi tối.
+Chiếc đồng hồ treo tường điểm chuông đúng nửa đêm.
+Hãy nhớ khóa van bình ga trước khi ra khỏi nhà.
+Chị gái tôi đang học thạc sĩ ngành ngôn ngữ học.
+Mấy hôm nay trời oi bức, ai cũng mong một trận mưa rào.
+Những con sóng bạc đầu vỗ ầm ầm vào bờ đá.
+Bác sĩ khuyên tôi nên ăn nhạt hơn và uống nhiều nước.
+Tôi xin lỗi vì đã để bạn phải chờ lâu như vậy.
+Làng gốm Bát Tràng lúc nào cũng tấp nập khách tham quan.
+Bố tôi tự tay đóng chiếc giá sách bằng gỗ thông.
+Đường lên Sa Pa quanh co, sương mù dày đặc vào buổi sớm.
+Cháu ơi, lấy giúp bà cặp kính trên bàn thờ với.
+Những đám mây xám xịt kéo đến che kín bầu trời.
+Tôi ước gì có thêm thời gian để học một nhạc cụ mới.
+Ngõ nhỏ nhà tôi chỉ vừa đủ cho hai chiếc xe máy tránh nhau.
+Cô bán hoa đạp xe chở đầy cúc họa mi đi khắp phố.
+Anh ấy xoay xở khá giỏi trong những tình huống khó khăn.
+Đêm giao thừa, cả nhà quây quần bên nồi bánh chưng.
+Mình vừa phát hiện ra một quán bún chả rất ngon ở phố Hàng Mành.
+Con suối trong vắt chảy róc rách qua những khe đá.
+Chúng tôi phải xếp hàng gần một tiếng mới mua được vé.
+Nắng chiều nhuộm vàng những mái ngói rêu phong.
+Đừng quên tưới nước cho mấy chậu cây ngoài ban công nhé.
+Bà cụ lẩm bẩm điều gì đó rồi chậm rãi bước đi.
+Chiếc xe buýt chật kín người vào giờ tan tầm.
+Tôi rất thích ngửi mùi sách mới khi vừa mở trang đầu.
+Hồi còn đi học, cậu ấy luôn đứng đầu lớp môn toán.
+Gió thổi vi vu qua rặng phi lao ven biển.
+Mẹ dặn tôi nhớ mua thêm nước mắm và hành lá.
+Ở đây mùa đông lạnh buốt, mùa hè lại nóng như thiêu.
+Hai đứa trẻ thì thầm to nhỏ rồi cười khúc khích.
+Người thợ mộc tỉ mỉ đục đẽo từng đường hoa văn.
+Tôi vẫn còn nhớ như in ngày đầu tiên đi làm.
+Mùa lúa chín, cả cánh đồng như một tấm thảm vàng khổng lồ.
+Nhà văn ấy viết về những phận người bé nhỏ nơi phố thị.
+Cơn ho khan kéo dài khiến tôi mệt mỏi cả tuần.
+Chúng ta sẽ nghỉ giải lao mười phút rồi học tiếp.
+Mấy con chim sẻ ríu rít trên dây điện trước cửa.
+Tôi nghĩ bạn nên suy nghĩ kỹ trước khi quyết định.
+Bà ngoại trồng một khóm sả và mấy luống rau thơm.
+Khu phố này về đêm yên tĩnh đến lạ thường.
+Đôi vợ chồng già nắm tay nhau đi bộ quanh công viên.
+Cậu ấy ngã uỵch một cái nhưng đứng dậy ngay.
+Mình đoán là chiều nay anh ấy sẽ gọi lại.
+Tiếng mõ gõ đều đều trong buổi tụng kinh sáng sớm.
+Chiếc khăn quàng đỏ được là phẳng phiu từ tối hôm trước.
+Tôi rất khâm phục sự kiên nhẫn của những người làm nghề giáo.
+Quán cà phê nhỏ ấy có khoảng sân đầy hoa giấy.
+Con trai tôi đòi nuôi một chú rùa cảnh.
+Những người lính biên phòng ngày đêm canh giữ vùng biên.
+Đường trơn quá, bạn đi chậm thôi kẻo ngã.
+Buổi chiều, lũ cò trắng bay về đậu kín rặng tre.
+Món nem rán phải ăn kèm nước chấm chua ngọt mới ngon.
+Tôi định sơn lại cánh cổng sắt màu xanh lá.
+Bạn thấy bộ phim tối qua thế nào?
+Những giọt sương long lanh đọng trên ngọn cỏ ban mai.
+Cả lớp im phăng phắc khi thầy bước vào.
+Họ mất gần ba tiếng để leo lên đỉnh Hàm Rồng.
+Chiếc lá cuối cùng trên cành khẽ lay trong gió.
+Tôi luôn để dành một khoản nhỏ mỗi tháng cho những lúc bất trắc.
+Chú Khuê là thợ sửa đồng hồ lâu năm nhất phố.
+Mình hơi ngại nói chuyện trước đám đông.
+Đường về nhà hôm nay sao dài dằng dặc.
+Chị ấy tỉ mẩn thêu từng bông hoa lên tấm khăn tay.
+Mấy quả khế chua trên cây đã chín vàng.
+Cả đội vui mừng khôn xiết khi giành được chiến thắng.
+Tôi nghe tiếng lách cách của bàn phím từ phòng bên.
+Ngày nào con cũng phải đánh răng trước khi đi ngủ.
+Bọn trẻ trong xóm rủ nhau đi thả diều trên đê.
+Ông ấy thở dài thườn thượt rồi ngồi phịch xuống ghế.
+Tôi mong mọi người đều bình an qua mùa dịch.
+Chiếc bình gốm men lam là kỷ vật của ông cố.
+Trời nhá nhem tối thì đèn đường mới bật sáng.
+Hoa đào Nhật Tân nở rộ báo hiệu Tết đang đến gần.
+Anh ấy khéo léo xoa dịu cơn giận của khách hàng.
+Mình phải ra hiệu thuốc mua ít thuốc cảm.
+Mặt hồ phẳng lặng như một tấm gương khổng lồ.
+Cuộc sống ở thành phố đôi khi khiến người ta ngột ngạt.
+Họ dựng lều cắm trại ngay cạnh bờ suối.
+Tôi chưa bao giờ thấy ai chăm chỉ như cô ấy.
+Ngoài hiên, cơn mưa rào ập đến rồi tạnh ngay.
+Đĩa xôi xéo nóng hổi rắc đầy hành phi thơm lừng.
+Bố mẹ luôn là chỗ dựa vững chắc nhất của chúng ta.
+Cậu học trò khoanh tay lễ phép chào thầy.
+Chiều nay trời hửng nắng, mình đem chăn ra phơi.
+Những chiếc đèn lồng đỏ treo kín mái hiên.
+Tôi nhận ra mình đã lớn khi phải tự lo mọi việc.
+Chú mèo mướp rình mãi mà không bắt được con chuột.
+Ai đã để quên chiếc ô xanh ở phòng họp vậy?
+Nghe nói tuần sau thành phố sẽ cắt nước hai ngày.
+Tôi đứng lặng người trước vẻ đẹp của vịnh Hạ Long.
+Mấy cây nến lung linh trên chiếc bánh sinh nhật.
+Chúng ta cần bàn lại kế hoạch cho chuyến đi sắp tới.
+Nhà thờ Lớn vang tiếng chuông vào mỗi sáng Chủ nhật.
+Chiếc xích lô chậm rãi đưa khách qua các phố cổ.
+Tôi thấy trong người không được khỏe lắm.
+Ở làng tôi, ai cũng biết mặt nhau.
+Bạn đã bao giờ thử nấu canh chua cá lóc chưa?
+Những ngọn đồi chè xanh ngắt trải dài tít tắp.
+Anh ấy lúng túng không biết trả lời ra sao.
+Tôi thích nghe tiếng mưa rơi lộp độp trên mái tôn.
+Con sông quê hiền hòa chảy qua bao thế hệ.
+Người ta nói thời gian là liều thuốc chữa lành mọi vết thương.
+Hôm nay là ngày đầu tiên cháu đi nhà trẻ.
+Cô ấy vội vàng chạy theo chuyến xe cuối cùng.
+Mình vẫn giữ những lá thư tay từ thời sinh viên.
+Chợ hoa ngày Tết đông nghịt người mua kẻ bán.
+Cái giếng nước đầu làng đã có từ hàng trăm năm trước.
+Ngày mai tôi sẽ dậy sớm để chạy bộ quanh hồ Tây.
+Tiếng còi tàu hỏa vọng lại từ phía xa.
+Bà cụ bán nước vối đã ngồi ở góc phố này mấy chục năm.
+Tôi chỉ muốn nằm dài trên giường cả ngày Chủ nhật.
+Thời tiết thất thường khiến nhiều người bị cảm cúm.
+Những cánh cò chao liệng trên đồng lúa chín.
+Cậu ấy huýt sáo một bài hát quen thuộc.
+Hàng cây xà cừ cổ thụ tỏa bóng mát khắp con đường.
+Mẹ con mình cùng làm bánh trôi tết Hàn thực nhé.
+Tôi thấy nhẹ nhõm khi mọi chuyện đã được giải quyết.
+Anh Nguyễn Văn Khoa vừa chuyển đến căn hộ tầng bảy.
+Buổi sáng ở chợ Đồng Xuân lúc nào cũng nhộn nhịp.
+Tôi không nhớ mình đã để chiếc điện thoại ở đâu.
+Trong vườn, hoa hồng và hoa cúc đua nhau khoe sắc.
+Chiếc cầu Long Biên đã chứng kiến bao thăng trầm lịch sử.
+Đừng lo, mọi chuyện rồi sẽ ổn thôi.
+Tụi mình ngồi ôn lại kỷ niệm thời cấp ba đến tận khuya.
+Nước chè xanh pha đặc uống vào thấy chát mà thơm.
+Cô bé nguệch ngoạc vẽ một ngôi nhà có ống khói.
+Mùa này đi Mộc Châu sẽ được ngắm hoa cải trắng.
+Tôi bất chợt nhớ nhà khi nghe bài hát ấy.
+Bác thợ điện leo lên cột để sửa đường dây.
+Những ô cửa sổ sáng đèn trong đêm đông lạnh giá.
+Chú Tuyển kể chuyện tiếu lâm khiến cả nhà cười nghiêng ngả.
+Chúng tôi chèo thuyền qua những hang động ở Tràng An.
+Bạn ngồi xuống đây uống chén nước cho đỡ mệt.
+Ông bà tôi đã sống bên nhau hơn năm mươi năm.
+Cái ấm nhôm sôi reo ùng ục trên bếp than.
+Tôi thường tự nhủ phải sống chậm lại một chút.
+Mấy đứa nhỏ tranh nhau miếng dưa hấu đỏ mọng.
+Trên gác xép, những thùng đồ cũ xếp chồng lên nhau.
+Tháng Mười, trời Hà Nội trong xanh và gió heo may se se.
+Cô hàng xóm tốt bụng hay mang cho chúng tôi rau nhà trồng.
+Mình khuyến khích các bạn đọc sách ít nhất hai mươi phút mỗi ngày.
+Tiếng cười giòn tan của lũ trẻ vang khắp ngõ.
+Chúc cả nhà một buổi tối thật vui vẻ và ấm cúng.
+
+# 2. Vietnamese with embedded English tech, business, and pop-culture words (target: 180)
+Sáng nay team mình sẽ deploy bản mới lên server production.
+Chị ơi, deadline của task này là thứ mấy vậy?
+Anh gửi file báo cáo qua email giúp em nhé.
+Cuộc meeting chiều nay dời sang ba giờ rồi.
+Mình đã nhận được feedback từ khách hàng về bản demo.
+Tối qua điện thoại tự update hệ điều hành lúc nửa đêm.
+Tối nay kênh sẽ livestream buổi ra mắt sản phẩm.
+Em check lại giúp anh xem log có báo lỗi gì không.
+Team marketing đang lên kế hoạch cho campaign quý tới.
+Mình vừa push code lên nhánh develop, mọi người review giúp nhé.
+Hệ thống bị down khoảng mười phút do database quá tải.
+Sếp muốn có một bản slide tóm tắt trước cuộc họp.
+Nếu app bị crash, bạn thử clear cache rồi mở lại.
+Chúng ta cần tối ưu performance của trang landing page.
+Anh ấy làm freelancer mảng design được ba năm rồi.
+Kênh này vừa đạt một trăm nghìn lượt subscribe sau hai năm.
+Cậu share giúp mình file ghi chú của buổi học hôm qua nhé.
+Bản build tối qua bị fail vì thiếu một dependency.
+Chị HR vừa gửi offer cho ứng viên vị trí backend.
+Đừng quên backup dữ liệu trước khi nâng cấp hệ điều hành.
+Video này đã đạt một triệu view chỉ sau hai ngày.
+Team QA phát hiện thêm ba bug nghiêm trọng trong sprint này.
+Mình đang dùng laptop cũ nên render video hơi chậm.
+Khách hàng yêu cầu thêm tính năng login bằng Google.
+Anh có thể approve pull request này trước buổi trưa không?
+Chúng ta sẽ có một buổi workshop về AI vào cuối tháng.
+Nhớ bấm like và comment nếu bạn thấy video hữu ích nhé.
+Startup đó vừa gọi vốn thành công vòng seed.
+Mình phải reset mật khẩu vì quên mất tài khoản admin.
+Bạn thử refresh lại trang xem dữ liệu đã cập nhật chưa.
+Trong podcast hôm nay, chúng ta sẽ nói về work life balance.
+Đội dev đang refactor lại toàn bộ module thanh toán.
+Chiếc smartphone mới có camera chụp đêm rất ấn tượng.
+Mình cần một cái plugin để export dữ liệu ra Excel.
+Kế hoạch này cần được sếp sign off trước khi triển khai.
+Buổi training cho nhân viên mới sẽ diễn ra trên Zoom.
+Hôm nay mình sẽ review chiếc tai nghe không dây mới ra mắt.
+Anh ấy là một influencer có hàng trăm nghìn follower.
+Ứng dụng đang ở giai đoạn beta nên còn nhiều lỗi nhỏ.
+Mình đã đặt reminder cho cuộc gọi với đối tác lúc chín giờ.
+Bạn có thể download tài liệu ở đường link bên dưới mô tả.
+Công ty đang chuyển toàn bộ hạ tầng lên cloud.
+Tính năng dark mode được người dùng yêu cầu rất nhiều.
+Trước khi merge, nhớ chạy lại toàn bộ unit test nhé.
+Chúng ta cần thêm một vài KPI rõ ràng cho quý này.
+Cô ấy vừa được promote lên làm team lead.
+Mình sẽ gửi invoice cho khách hàng vào cuối tuần.
+Trang web load chậm quá, chắc do hình ảnh chưa được nén.
+Anh ấy thích xem các video unboxing đồ công nghệ.
+Bạn nhớ tag mình vào bài post đó nhé.
+Chúng ta phải hoàn thành MVP trước buổi pitching với nhà đầu tư.
+Em đã sync dữ liệu giữa hai máy chưa?
+Dự án này dùng framework React cho phần frontend.
+Mình cần thêm vài con số để hoàn thiện bản report.
+Chị ấy đang họp online với đối tác bên Singapore.
+Cái headphone này chống ồn khá tốt khi đi máy bay.
+Bạn có thể bookmark trang này để đọc lại sau.
+Đội ngũ support sẽ phản hồi trong vòng hai mươi bốn giờ.
+Trailer của bộ phim bom tấn vừa được tung ra tối qua.
+Hôm nay team sẽ brainstorm ý tưởng cho sản phẩm mới.
+Mình vừa upload video mới, mọi người vào xem nhé.
+API trả về lỗi timeout khi số lượng request tăng đột biến.
+Chúng tôi đang tuyển intern cho mảng data analysis.
+Anh xem giúp em cái dashboard này có số liệu sai không.
+Nhớ logout khỏi máy tính công cộng sau khi dùng xong.
+Game thủ Việt Nam lọt vào vòng chung kết giải esports châu Á.
+Bạn nên đọc kỹ các điều khoản trong contract trước khi ký.
+Mình chưa kịp cập nhật calendar nên bị trùng hai cuộc họp.
+Kênh YouTube của cô ấy chuyên về nấu ăn và lifestyle.
+Chúng ta có thể schedule buổi demo vào sáng thứ năm được không?
+Công ty áp dụng mô hình hybrid, làm ở nhà hai ngày một tuần.
+Bạn cần enable quyền truy cập camera cho ứng dụng.
+Sản phẩm này đang được sale năm mươi phần trăm trên sàn thương mại điện tử.
+Em vừa fix xong cái bug hiển thị sai ngày tháng.
+Mình đang chuẩn bị portfolio để apply vào vị trí UX designer.
+Nhóm nhạc K-pop đó sẽ có concert ở Hà Nội tháng sau.
+Đừng spam tin nhắn trong group chat của lớp nhé.
+Hệ thống sẽ tự động gửi notification khi có đơn hàng mới.
+Anh ấy làm product manager cho một công ty fintech.
+Mình cần thêm thời gian để debug đoạn code này.
+Bài viết này đã viral trên mạng xã hội chỉ sau một đêm.
+Khách hàng phàn nàn về trải nghiệm checkout trên mobile.
+Chúng ta sẽ dùng Figma để làm wireframe cho giao diện.
+Server bên thứ ba đang bảo trì nên tính năng này tạm thời bị disable.
+Mình vừa đăng ký gói premium để nghe nhạc không quảng cáo.
+Các bạn intern mới sẽ được onboard trong tuần đầu tiên.
+Cuối tuần này có một buổi meetup của cộng đồng developer.
+Bạn có thể zoom biểu đồ lên để thấy rõ hơn không?
+Trang web mới có thiết kế responsive trên mọi thiết bị.
+Anh gửi giúp em cái link Google Drive chứa tài liệu dự án.
+Trước khi launch, chúng ta cần một bản checklist đầy đủ.
+Chị ấy vừa post một bức ảnh selfie ở Đà Lạt.
+Mình nghĩ nên outsource phần kiểm thử cho một đối tác.
+Nhớ đặt password mạnh gồm chữ hoa, chữ thường và ký tự đặc biệt.
+Vlog hôm nay mình sẽ đưa các bạn đi ăn street food ở phố cổ.
+Dữ liệu được mã hóa trước khi lưu vào storage.
+Team sales đã vượt target doanh số tháng này.
+Mình sẽ forward email này cho anh trưởng phòng.
+Bản cập nhật firmware giúp thiết bị chạy mượt hơn hẳn.
+Chúng ta nên chạy thử hai phiên bản giao diện rồi so sánh conversion rate.
+Nhà đầu tư rất ấn tượng với bản pitch deck của chúng ta.
+Cuộc call với khách hàng Nhật Bản kéo dài gần hai tiếng.
+Bạn thử restart router xem mạng có ổn định hơn không.
+Tính năng chatbot giúp giảm tải cho bộ phận chăm sóc khách hàng.
+Mình đang học thêm khóa machine learning trên Coursera.
+Em đã scan hợp đồng và lưu vào thư mục chung rồi ạ.
+Kênh này thường xuyên có các video reaction rất vui.
+Sản phẩm của họ nhận được rating năm sao trên App Store.
+Hãy comment bên dưới nếu bạn có câu hỏi nào nhé.
+Anh ấy đang chạy thử bản prototype với một nhóm người dùng nhỏ.
+Mọi người nhớ điền vào form khảo sát trước thứ tư.
+Bộ phim được stream độc quyền trên Netflix từ tuần này.
+Mình đã cài extension chặn quảng cáo cho trình duyệt.
+Chúng tôi dùng Slack để trao đổi công việc hằng ngày.
+Bạn cần đăng nhập lại vì session đã hết hạn.
+Đội ngũ content đang viết kịch bản cho series video mới.
+Chị có thể confirm lại lịch phỏng vấn giúp em không?
+Ứng dụng giao đồ ăn này có nhiều voucher giảm giá.
+Anh ấy chia sẻ vài tip để tăng năng suất khi làm remote.
+Trong bước tiếp theo, chúng ta sẽ config biến môi trường.
+Mình đang edit video nên chưa trả lời tin nhắn được.
+Đây là một case study thú vị về chuyển đổi số.
+Team đã họp retrospective để rút kinh nghiệm sau sprint.
+Tài khoản của bạn đã được verify thành công.
+Chúng ta cần thêm budget cho chiến dịch quảng cáo online.
+Bạn có thể install ứng dụng trực tiếp từ Google Play.
+Anh ấy mê dòng xe điện Tesla từ hồi còn là sinh viên.
+Mình sẽ recap lại nội dung chính ở cuối video.
+Buổi webinar tối nay có hơn năm trăm người đăng ký.
+Phần mềm này hỗ trợ cả Windows lẫn macOS.
+Em đang chờ bên design gửi mockup để bắt đầu code.
+Mình phải rollback bản release vì phát sinh lỗi nghiêm trọng.
+Chiếc tablet này rất tiện để đọc ebook trước khi ngủ.
+Bộ phận IT sẽ cấp quyền access cho nhân viên mới.
+Nhóm đang tìm cách scale hệ thống để phục vụ nhiều người dùng hơn.
+Đây là playlist nhạc lo-fi mình hay nghe khi làm việc.
+Chị ấy vừa nhận được một email spam giả danh ngân hàng.
+Các bạn có thể xem full video trên kênh chính thức.
+Chúng ta sẽ chạy một đợt beta kín với một trăm người dùng.
+Bạn nhớ save file thường xuyên để tránh mất dữ liệu.
+Trong video này, mình sẽ hướng dẫn cách cài đặt một cái VPS.
+Doanh thu từ mảng subscription tăng mạnh trong năm qua.
+Anh trưởng nhóm muốn có bản estimate cho từng hạng mục.
+Mình vừa đặt một cái bàn phím cơ trên shop online.
+Hội nghị tech năm nay có nhiều speaker nổi tiếng.
+Lượng traffic vào website tăng gấp đôi sau chiến dịch.
+Em đã note lại các ý chính trong buổi họp rồi ạ.
+Bản thiết kế cần thêm một chút highlight ở phần tiêu đề.
+Ứng dụng tự động đồng bộ ảnh lên cloud khi có wifi.
+Bạn nên đọc documentation trước khi hỏi trong forum.
+Chúng tôi đang thử nghiệm một workflow mới cho đội hỗ trợ.
+Nhóm nghiên cứu vừa công bố một paper về mô hình ngôn ngữ lớn.
+Mình không thích những video clickbait với tiêu đề giật tít.
+Hãy chắc chắn rằng bạn đã commit hết thay đổi trước khi chuyển nhánh.
+Sếp vừa ping trong nhóm hỏi tiến độ dự án.
+Lịch sprint planning được chốt vào sáng thứ hai hằng tuần.
+Mình dùng một cái app nhỏ để track thói quen mỗi ngày.
+Cô ấy là một content creator chuyên làm video du lịch.
+Tính năng search mới giúp tìm tài liệu nhanh hơn nhiều.
+Đơn hàng của bạn đang được xử lý và sẽ có tracking number sớm.
+Anh có thể hotfix lỗi này ngay trong tối nay không?
+Chúng tôi đã ký NDA trước khi trao đổi chi tiết dự án.
+Bạn nên dùng password manager để quản lý mật khẩu.
+Cả team đi team building ở Hạ Long vào tháng tới.
+Máy chủ tự động scale up khi lượng truy cập tăng.
+Mình mới chuyển sang dùng keyboard layout khác nên gõ hơi chậm.
+Đây là bản roadmap sản phẩm cho sáu tháng tới.
+Ứng dụng có giao diện UI rất gọn gàng và dễ dùng.
+Em đã tạo ticket trên Jira để theo dõi lỗi này.
+Hôm nay mình sẽ trả lời các câu hỏi trong phần Q&A.
+Bạn có thể pause video để làm theo từng bước.
+Chị ấy đang chuẩn bị keynote cho sự kiện ra mắt sản phẩm.
+Mình rất thích phong cách minimalist trong thiết kế nội thất.
+Đơn vị vận chuyển báo đơn hàng bị delay do thời tiết xấu.
+Mọi người vui lòng mute mic khi không phát biểu nhé.
+Hãy để lại email để nhận newsletter hằng tuần của chúng tôi.
+Bài hát mới của cô ấy đứng đầu bảng xếp hạng Billboard.
+Chúng ta nên tận dụng insight từ người dùng để cải thiện sản phẩm.
+Nhớ bật chế độ auto save trong phần mềm chỉnh sửa.
+Cảm ơn các bạn đã xem, hẹn gặp lại trong episode tiếp theo.
+
+# 3. Words spelled the same in Vietnamese and English, used in both senses (target: 100)
+Bữa trưa no căng bụng nên chiều nay ai cũng buồn ngủ.
+Bữa trưa no nê khiến cả đoàn buồn ngủ rũ rượi.
+Anh ấy nói no với lời mời làm thêm giờ cuối tuần.
+Câu trả lời của cô ấy chỉ đơn giản là no, thank you.
+Mọi người phải can ngăn mãi hai anh em mới thôi cãi nhau.
+Bà rót nước từ chiếc can nhựa vào ấm để đun.
+Nó tự tin hô yes we can trước cả lớp.
+Đừng lo, em can do it mà.
+Chuyến bay bị hoãn do thời tiết xấu.
+Do mải chơi nên cậu bé quên làm bài tập.
+Just do it là khẩu hiệu nổi tiếng của một hãng đồ thể thao.
+Anh ấy tự hỏi what should I do rồi im lặng suy nghĩ.
+Thôi cứ let it go đi, chuyện cũ rồi mà.
+Cô ấy xem bản thiết kế rồi nói I love it ngay lập tức.
+Make it simple là nguyên tắc chị ấy luôn nhắc cả nhóm.
+Em in giúp anh hai bản hợp đồng này nhé.
+Máy in ở tầng ba lại hết mực rồi.
+Mình vừa check in ở khách sạn, phòng rất đẹp.
+Sản phẩm made in Vietnam đang được thị trường quốc tế đón nhận.
+Ngôi nhà to nhất xóm là của bác trưởng thôn.
+Con bé khóc to quá làm cả nhà giật mình.
+Gió to thổi bay cả mái tôn nhà kho.
+Welcome to Vietnam là câu đầu tiên hướng dẫn viên nói với đoàn khách.
+Mình có một to do list rất dài cho tuần này.
+Canh chua nấu với me thì vị chua thanh hơn.
+Mẹ mua một gói ô mai me cho lũ trẻ ăn vặt.
+Bạn thân nhắn cho mình hai chữ call me rồi tắt máy.
+Cậu ấy nhìn tôi và nói believe me, lần này sẽ khác.
+Cô giáo yêu cầu so sánh hai bài thơ về mùa thu.
+Đừng so đo từng chút một với bạn bè.
+Món này is so good luôn, bạn phải thử đi.
+Hôm nay mình so tired nên đi ngủ sớm đây.
+Ready, set, go là tiếng hô bắt đầu cuộc đua.
+Mình sẽ học ngôn ngữ lập trình Go trong khóa này.
+Cả nhóm hô let's go rồi bắt tay vào việc.
+Chúc cả nhà bình an và mạnh khỏe.
+An toàn là trên hết khi tham gia giao thông.
+Cậu bé tên An học lớp năm ở trường làng.
+Đây là an example rất hay để minh họa cho bài giảng.
+Nhớ gạt công tắc sang on trước khi quay video.
+Anh ấy luôn on time trong mọi cuộc họp.
+Come on, cố lên một chút nữa thôi!
+Chương trình lên sóng on air lúc tám giờ tối.
+Tôi tin rằng mọi nỗ lực đều sẽ được đền đáp.
+Bản tin thời sự tối nay có nhiều thông tin mới.
+Nhân vật Tin Man trong phim Phù thủy xứ Oz không có trái tim.
+Tôi là fan của đội tuyển bóng đá Việt Nam từ nhỏ.
+Hàng nghìn fan đã có mặt từ sớm để dự buổi fan meeting.
+Bật cái fan lên cho mát đi, trong phòng nóng quá.
+Ban giám đốc sẽ họp vào chiều thứ sáu.
+Ban ngày trời nắng, ban đêm lại lạnh cóng.
+Tài khoản game của cậu ấy bị ban vì dùng phần mềm gian lận.
+Admin đã ban mấy nick spam ra khỏi nhóm.
+Tôi đi bus đến trường mỗi sáng.
+Chiếc school bus màu vàng dừng trước cổng trường.
+Lỗi này nằm ở tầng message bus giữa các dịch vụ.
+Điện thoại của tôi sắp hết pin rồi.
+Chiếc xe điện này sạc đầy pin đi được hai trăm cây số.
+Nhớ pin tin nhắn thông báo lên đầu nhóm nhé.
+Bạn nhập mã pin gồm bốn chữ số để rút tiền.
+Bài hát này lọt top mười thịnh hành trên YouTube.
+Cô ấy luôn nằm trong top đầu của lớp.
+Mình mới mua một chiếc crop top màu trắng.
+Tin này đang rất hot trên mạng xã hội.
+Trời hôm nay hot quá, chắc phải ba mươi tám độ.
+Một ly hot chocolate là đủ ấm cho buổi tối mùa đông.
+Con mèo nhà bạn cute quá đi mất.
+Chiếc móc khóa hình gấu trông cute ghê.
+Em bé trong video vừa cute vừa hài hước.
+Nhớ like và share video nếu bạn thấy hay nhé.
+Bài đăng của anh ấy nhận được hơn mười nghìn lượt like.
+Mình kiểu like, không tin nổi là mọi chuyện lại như vậy.
+I like it, cô ấy reo lên khi mở hộp quà.
+Ok, chúng ta bắt đầu buổi họp nhé.
+Mọi thứ vẫn ok chứ anh?
+Bản thiết kế này nhìn chung là ok rồi.
+Mình đã set lịch họp lúc hai giờ chiều.
+Cô ấy mua nguyên một set đồ ăn trưa cho cả nhóm.
+Trận tennis kéo dài đến set thứ năm.
+Nhớ set lại báo thức trước khi đi ngủ.
+Ngày mai lớp mình có bài test tiếng Anh.
+Chúng ta cần test kỹ tính năng này trước khi phát hành.
+Kết quả test nhanh cho thấy mọi người đều âm tính.
+Tối nào cậu ấy cũng chơi game đến khuya.
+Game này có đồ họa đẹp và cốt truyện hấp dẫn.
+Đó là một game changer thực sự cho ngành vận tải.
+Bật airplane mode khi máy bay chuẩn bị cất cánh.
+Máy ảnh có mode chụp chân dung xóa phông rất đẹp.
+Cậu ấy mà vào mode tập trung thì không ai gọi được.
+Chương trình game show tối thứ bảy rất đông khán giả.
+Anh ấy thích show hàng hiệu lên mạng xã hội.
+The show must go on, đó là tinh thần của cả ê kíp.
+Buổi show ca nhạc ngoài trời bị hủy vì mưa.
+Công ty tổ chức tour du lịch Phú Quốc bốn ngày ba đêm.
+Ban nhạc sẽ đi world tour vào năm sau.
+Hướng dẫn viên dẫn đoàn đi city tour bằng xe buýt hai tầng.
+Shop sẽ ship hàng đến tận nhà trong hai ngày.
+Phí ship nội thành chỉ ba mươi nghìn đồng.
+Cộng đồng fan rất thích ship hai diễn viên chính thành một cặp.
+Chúng ta phải ship bản cập nhật này trước cuối tuần.
+
+# 4. URLs, emails, paths, identifiers, hashtags, handles, shortcuts, symbols (target: 100)
+Bạn truy cập https://example.com/docs/getting-started để xem hướng dẫn chi tiết.
+Tài liệu API nằm ở https://api.example.com/v2/reference nhé.
+Mọi thắc mắc xin gửi về địa chỉ support@example.com.
+Email của chị Lan là lan.nguyen_92@example.vn.
+Hãy gửi CV về tuyen-dung2024@congty-abc.com trước ngày mười lăm.
+Mình để file cấu hình ở /etc/nginx/sites-available/default.
+Trên Windows, file log nằm ở C:\Users\Admin\AppData\Local\Temp.
+Biến user_id được truyền vào hàm getUserProfile để lấy thông tin.
+Tên component nên viết theo kiểu kebab-case như user-profile-card.
+Phiên bản v3.2.1 đã sửa lỗi rò rỉ bộ nhớ.
+Mình học C++ từ hồi đại học, giờ chuyển sang C# cho công việc.
+Backend của dự án viết bằng Node.js, còn trang quản trị dùng .NET.
+Nhớ gắn hashtag #HocLapTrinh khi đăng bài nhé.
+Theo dõi mình trên Twitter tại @techwithminh để cập nhật tin mới.
+Bấm Alt+Tab để chuyển nhanh giữa các cửa sổ đang mở.
+Laptop chỉ còn 15% năng lượng, mình phải cắm sạc đây.
+Công ty A&B vừa ký hợp đồng hợp tác chiến lược.
+Bạn đã hoàn thành 3/5 bài tập của tuần này.
+Mở file README.md để đọc hướng dẫn cài đặt.
+Chạy lệnh npm install trong thư mục gốc của dự án.
+Trang chủ www.vnexpress.net cập nhật tin tức liên tục.
+Mã nguồn được công khai trên https://github.com/example-org/sample-app.
+Danh sách phát nằm ở https://www.youtube.com/playlist?list=PL42demo.
+Tìm kiếm nhanh bằng cách vào google.com và gõ từ khóa.
+File ảnh logo_final_v2.png bị lỗi khi mở trên điện thoại.
+Hàm calculateTotalPrice trả về giá trị sau khi đã trừ khuyến mãi.
+Biến MAX_RETRY_COUNT đang được đặt bằng năm.
+Bấm Ctrl+C để sao chép và Ctrl+V để dán.
+Trên Mac, bạn dùng Cmd+Space để mở Spotlight.
+Python 3.12 có nhiều cải tiến về hiệu năng.
+Bạn đổi tên file data.csv thành data_backup.csv trước khi ghi đè.
+Truy cập http://localhost:3000 để xem ứng dụng đang chạy.
+Địa chỉ IP của máy chủ là 192.168.1.10.
+Thư mục ~/Documents/projects chứa toàn bộ mã nguồn.
+Cài đặt Docker phiên bản 24.0.5 trở lên.
+Mình dùng thư viện lodash để xử lý mảng cho gọn.
+Hãy thêm dòng export default App ở cuối file.
+Cấu hình được lưu trong file .env.local, đừng commit nó lên git.
+Liên hệ bộ phận kế toán qua ketoan.hn-01@example.org.
+Trang https://docs.example.com/en/latest/install có hướng dẫn cho người mới.
+Nhấn Alt+Tab để chuyển nhanh giữa các cửa sổ.
+Bấm F5 để tải lại trang hoặc Ctrl+F5 để xóa bộ nhớ đệm.
+Chạy lệnh git checkout -b feature/login-page để tạo nhánh mới.
+Tệp tin index.html là điểm bắt đầu của trang web.
+Hàm is_valid_email kiểm tra định dạng địa chỉ email.
+Class UserRepository chịu trách nhiệm truy vấn cơ sở dữ liệu.
+Mình đã nâng cấp từ React 17 lên React 18.2.0.
+Bài đăng có hashtag #MuaHeXanh thu hút hàng nghìn lượt chia sẻ.
+Kênh @hanoi.foodie chuyên review các quán ăn ngon.
+Mở terminal và gõ cd /var/www/html để vào thư mục web.
+Tải bản cài đặt tại https://download.example.net/setup-v1.4.exe.
+Trường created_at lưu thời điểm bản ghi được tạo.
+Endpoint /api/v1/users/42 trả về thông tin của người dùng số bốn mươi hai.
+Đường dẫn D:\Projects\Website\assets\images chứa toàn bộ hình ảnh.
+Mình đặt tên biến là isLoggedIn để dễ hiểu.
+File styles.min.css đã được nén để tải nhanh hơn.
+Hiệu suất tăng 30% sau khi bật bộ nhớ đệm.
+Bạn có thể dùng Ctrl+Z để hoàn tác thao tác vừa rồi.
+Gửi báo cáo cho quanly.duan_2025@example.com trước năm giờ chiều.
+Mình vừa tạo subdomain blog.example.com cho trang cá nhân.
+Link đăng ký sự kiện là https://events.example.com/2025/hanoi-meetup.
+Lỗi 404 xuất hiện khi đường dẫn không tồn tại.
+Lệnh ls -la liệt kê tất cả các file, kể cả file ẩn.
+Package @types/node cung cấp kiểu dữ liệu cho TypeScript.
+Tên hằng số nên viết hoa theo kiểu SCREAMING_SNAKE_CASE.
+Mình dùng Vue.js cho dự án nhỏ vì học nhanh.
+Ứng dụng chạy tốt trên Android 14 và iOS 17.
+File báo cáo nằm ở \\fileserver\shared\reports\q3.xlsx.
+Hàm fetchDataFromServer được gọi mỗi khi người dùng cuộn trang.
+Hãy theo dõi trang facebook.com/example.page để nhận ưu đãi.
+Gõ Win+E để mở nhanh File Explorer.
+Nhấn Ctrl+Shift+T để mở lại tab vừa đóng.
+Tài khoản mẫu là demo_user01, mật khẩu do quản trị viên cấp.
+Tất cả ảnh được lưu dưới dạng .jpg hoặc .webp.
+Bản vá 2.0.1-beta vẫn còn một vài lỗi nhỏ.
+Framework Next.js hỗ trợ render phía máy chủ.
+Mình thường tìm câu trả lời trên stackoverflow.com.
+Chuỗi JSON được parse bằng hàm JSON.parse trong JavaScript.
+Đổi giá trị debug_mode thành false trước khi triển khai.
+Mời bạn ghé https://shop.example.vn/khuyen-mai để xem ưu đãi.
+Địa chỉ john.doe+news@example.com dùng để nhận bản tin.
+Trong Linux, file cấu hình của người dùng thường nằm ở ~/.bashrc.
+Cuộc thi dùng hashtag #CodeChallenge2025 để tổng hợp bài dự thi.
+Bạn tag @minhquan.dev vào bài viết để mình thấy nhé.
+Tỷ lệ thành công của các bài kiểm thử đạt 98%.
+Nhóm R&D đang nghiên cứu công nghệ pin thể rắn.
+Mình đã đọc xong chương 4/12 của cuốn sách.
+Lệnh docker-compose up -d khởi động toàn bộ dịch vụ ở chế độ nền.
+Thuộc tính max-width được đặt là 1200px cho khung nội dung.
+Ứng dụng kết nối tới cơ sở dữ liệu qua cổng 5432.
+Hãy tải file setup_x64.msi nếu máy bạn chạy Windows 64 bit.
+Trình biên dịch GCC 13 hỗ trợ đầy đủ chuẩn C++20.
+Tham số page_size mặc định bằng hai mươi.
+Chúng tôi chuyển trang web từ old-site.example.com sang www.example.com.
+Truy cập https://mail.google.com để kiểm tra hộp thư.
+Nhấn Shift+Enter để xuống dòng mà không gửi tin nhắn.
+Đọc thêm tại https://vnexpress.net/so-hoa để cập nhật tin công nghệ.
+Nhóm phát triển dùng các nhánh main, develop và release/v2.0.
+Bạn hãy mở file config.yaml và sửa giá trị timeout.
+Mọi góp ý xin gửi về hotro-khachhang@example.com.vn.
+
+# 5. Numbers, dates, times, money, units, phone numbers, ordinals, ranges, decimals (target: 80)
+Cuộc họp bắt đầu lúc 9 giờ 30 phút sáng thứ hai.
+Chuyến bay VN255 cất cánh lúc 14:45 từ sân bay Nội Bài.
+Giá chiếc điện thoại này là 12.990.000 đồng.
+Doanh thu quý ba đạt 2,5 tỷ đồng, tăng 18% so với cùng kỳ.
+Chiếc laptop được bán với giá 1.299 USD tại Mỹ.
+Tỷ giá hôm nay khoảng 25.400 đồng đổi một đô la Mỹ.
+Ngày 2 tháng 9 năm 1945 là ngày Quốc khánh của Việt Nam.
+Hạn chót nộp hồ sơ là ngày 15/10/2025.
+Buổi hội thảo diễn ra từ 8h đến 11h30 sáng.
+Quãng đường từ Hà Nội đến Hải Phòng khoảng 120 km.
+Nhiệt độ ngoài trời hôm nay là 35 độ C.
+Chiều cao của cậu ấy là 1,75 mét.
+Bạn cần uống khoảng 2 lít nước mỗi ngày.
+Túi gạo này nặng 25 kg.
+Số điện thoại liên hệ là 0912 345 678.
+Tổng đài hỗ trợ miễn phí 1800 1234 hoạt động 24/7.
+Anh ấy về đích thứ 3 trong giải chạy 10 km.
+Đây là lần thứ 2 mình tham gia hội chợ này.
+Thế kỷ 21 chứng kiến sự bùng nổ của internet.
+Chương trình giảm giá từ 20% đến 50% cho tất cả sản phẩm.
+Căn hộ rộng 75 mét vuông, có 2 phòng ngủ và 2 phòng tắm.
+Tốc độ tối đa trên đường cao tốc là 120 km/h.
+Ổ cứng SSD dung lượng 512 GB, RAM 16 GB.
+Năm 2024 có 366 ngày vì là năm nhuận.
+Dân số Việt Nam đã vượt mốc 100 triệu người.
+Lãi suất tiết kiệm kỳ hạn 12 tháng là 5,2% một năm.
+Giá xăng RON 95 hôm nay là 23.450 đồng một lít.
+Mỗi người có khoảng 3 đến 5 phút để trình bày.
+Quãng đường chạy bộ hôm qua của mình là 3.5 miles.
+Giá trị số pi xấp xỉ bằng 3,14159.
+Đội tuyển thắng với tỷ số 3-1 trong trận chung kết.
+Tháng 12 năm ngoái, công ty tuyển thêm 45 nhân viên.
+Hóa đơn tiền điện tháng này là 1.235.000 đồng.
+Mỗi vé xem phim giá 95 nghìn đồng.
+Cửa hàng mở cửa từ 7:00 đến 22:00 hằng ngày.
+Mình sinh ngày 21 tháng 3 năm 1998.
+Tàu SE1 khởi hành lúc 19h25 và đến Sài Gòn sau khoảng 32 tiếng.
+Chiều dài cây cầu là 1.682 mét.
+Ngân sách dự án được duyệt là 50.000 USD.
+Điểm trung bình học kỳ này của em là 8,6.
+Căn phòng giữ nhiệt độ ổn định ở mức 22,5 độ.
+Cổ phiếu công ty tăng 2.3% trong phiên giao dịch sáng nay.
+Mình đã hoàn thành quãng đường 42,195 km trong lần chạy marathon đầu tiên.
+Bộ phim dài 2 tiếng 15 phút.
+Tầng 15 của tòa nhà dành cho phòng họp.
+Căn nhà số 36 nằm trong ngõ 102 phố Trần Duy Hưng.
+Phòng 1204 ở tầng 12, bên trái thang máy.
+Mức lương khởi điểm từ 15 đến 20 triệu đồng một tháng.
+Có 1/3 số người tham gia khảo sát chọn phương án thứ hai.
+Chiếc xe tiêu thụ 6,5 lít xăng cho 100 km.
+Chúng tôi sẽ gặp nhau vào thứ Bảy, ngày 08/11.
+Hội nghị kéo dài từ ngày 3 đến ngày 5 tháng 6.
+Con số chính xác là 1.024, không phải 1.000.
+Kỳ nghỉ Tết năm nay kéo dài 9 ngày liên tiếp.
+Lúc 6 giờ kém 15, trời vẫn còn tối.
+Giá vàng hôm nay tăng lên 8,35 triệu đồng một chỉ.
+Chiếc tivi 65 inch đang được giảm còn 14,9 triệu.
+Năm 1010, vua Lý Thái Tổ dời đô ra Thăng Long.
+Tôi cần mua 3 chai nước, 2 ổ bánh mì và 1 hộp sữa.
+Tài khoản của bạn còn 250.000 đồng.
+Máy bay đang bay ở độ cao khoảng 10.000 mét.
+Học phí mỗi kỳ là 18,5 triệu đồng.
+Độ phân giải màn hình là 1920 x 1080 điểm ảnh.
+Gói cước 4G giá 120 nghìn đồng một tháng, mỗi ngày có 5 GB.
+Cuộc gọi kéo dài 1 giờ 42 phút.
+Khoản vay 500 triệu đồng được trả góp trong 10 năm.
+Tốc độ mạng đo được là 300 Mbps.
+Ngày 30/4/1975 là ngày thống nhất đất nước.
+Món hàng này có giá 19.99 USD trên trang web nước ngoài.
+Đợt khuyến mãi áp dụng từ 00:00 ngày 11/11 đến 23:59 ngày 12/11.
+Anh ấy chạy 100 mét trong 11,2 giây.
+Có khoảng 70 đến 80 người tham dự buổi họp lớp.
+Bức tường cao 2,8 m và dài 6 m.
+Giải thưởng trị giá 1 tỷ đồng dành cho đội vô địch.
+Cân nặng của em bé lúc chào đời là 3,2 kg.
+Lớp học có 42 học sinh, trong đó có 23 bạn nữ.
+Trên thang điểm từ 1 đến 10, bạn chấm sản phẩm này mấy điểm?
+Mã bưu chính của Hà Nội là 100000.
+Lượng mưa trung bình tháng 8 vào khoảng 300 mm.
+Tuần thứ 37 của năm thường rơi vào giữa tháng 9.
+
+# 6. Pure English narration and conversation (target: 80)
+Welcome back to the channel, and thanks for tuning in today.
+In this video, we're going to build a simple to-do app from scratch.
+Don't forget to hit the subscribe button if you haven't already.
+Let's take a quick look at the dashboard before we dive in.
+I'm not sure that's the best approach, but let's give it a try.
+Sarah from the design team will walk us through the new layout.
+It's been a long week, so let's keep this meeting short.
+Here's the thing: most people never read the documentation.
+We've shipped three major updates since January.
+Could you share your screen so everyone can see the error?
+The weather in Hanoi can change quickly in the spring.
+Honestly, I didn't expect the results to be this good.
+If you have any questions, leave them in the comments below.
+Let me show you how to set up your environment in under five minutes.
+John said he'd send the report by the end of the day.
+That's a great point, and I think we should explore it further.
+Before we start, make sure your microphone is muted.
+The company announced record profits for the second quarter.
+We'll be right back after a short break.
+I'd love to hear what you think about this feature.
+Scientists believe the discovery could change how we treat the disease.
+You can't really understand a city until you've walked its streets.
+Let's move on to the next slide.
+Emily's been working on this project for almost two years.
+The key takeaway is that small habits compound over time.
+We couldn't have done this without the support of our community.
+This is where things start to get interesting.
+Is everyone okay with pushing the deadline to Friday?
+Mark thinks we should focus on mobile users first.
+There's no easy answer to that question, unfortunately.
+According to the latest report, electric car sales doubled last year.
+I'll leave a link to the source code in the description.
+The server went down at around two in the morning.
+She's one of the most talented engineers I've ever worked with.
+Let's pause here and recap what we've learned so far.
+What would you do if you had unlimited time and money?
+Our goal is to make the product accessible to everyone.
+The museum opens at nine and closes at five on weekdays.
+He wasn't feeling well, so he stayed home today.
+Thanks again to our sponsor for making this video possible.
+In the next episode, we'll talk about database indexing.
+You've probably heard this advice before, but it's worth repeating.
+The match ended in a draw after extra time.
+Alex, could you give us a quick update on the budget?
+It's important to test your code on real devices.
+I think we're finally ready to launch the beta.
+The river flows through three countries before reaching the sea.
+Let's not overcomplicate things.
+We'll need approval from legal before we sign the contract.
+That was the best pho I've had in a long time.
+Remember to back up your files regularly.
+The audience gave a standing ovation at the end of the performance.
+I've been learning Vietnamese for about six months now.
+Let's break this problem down into smaller pieces.
+The new policy takes effect next Monday.
+If it isn't broken, don't fix it.
+Kevin and Linh are presenting the quarterly results today.
+This tutorial assumes you have basic knowledge of JavaScript.
+Why don't we grab lunch after the meeting?
+The storm is expected to make landfall early tomorrow morning.
+It's worth noting that the data only covers urban areas.
+I'm really excited to share this project with you.
+We should've started this conversation much earlier.
+The algorithm runs in linear time, which is pretty efficient.
+Could you repeat the last part? The audio cut out.
+Our team won first place at the national hackathon.
+Here's a quick tip that'll save you a lot of time.
+The bridge was built more than a century ago.
+You won't believe what happened next.
+Please make sure you've saved your work before closing the app.
+Anna's presentation was clear, concise, and well organized.
+We're experiencing some technical difficulties, please bear with us.
+Learning a new language takes patience and consistency.
+The CEO will join the call in about ten minutes.
+They've decided to open a new office in Ho Chi Minh City.
+Let's wrap up and pick this up again tomorrow.
+I can't stress enough how important sleep is for your health.
+What's the difference between a process and a thread?
+The results speak for themselves.
+That's all for today, see you in the next one.
+
+# 7. Longer Vietnamese sentences with commas, questions, exclamations, quoted speech (target: 60)
+Anh ơi, anh có nghe thấy tiếng gì lạ ở ngoài cửa không?
+Trời ơi, sao hôm nay đường lại tắc kinh khủng thế này!
+Cô giáo hỏi cả lớp: "Em nào xung phong lên bảng giải bài này?"
+Mẹ tôi hay nói: "Có công mài sắt, có ngày nên kim", và tôi luôn ghi nhớ câu ấy.
+Nếu ngày mai trời đẹp, chúng ta sẽ đi dã ngoại ở ngoại thành; còn nếu mưa, cả nhà ở nhà xem phim nhé.
+Bạn có chắc là mình đã khóa cửa trước khi đi không, hay là quay lại kiểm tra cho yên tâm?
+Tuyệt vời quá, cuối cùng thì chúng ta cũng đã hoàn thành dự án đúng hạn!
+Ông cụ chậm rãi nói: "Ngày xưa, cả làng này chỉ có một cái giếng, ai cũng phải gánh nước từ sáng sớm."
+Sau nhiều tháng chuẩn bị, vượt qua biết bao khó khăn, đội của chúng tôi đã chính thức bước vào vòng chung kết.
+Tại sao chúng ta lại phải chờ đến phút cuối mới bắt đầu làm, trong khi còn cả tuần để chuẩn bị?
+"Con đã về rồi đây!", thằng bé hét lên khi vừa bước qua cổng.
+Hà Nội mùa thu, với những con phố vàng lá, gió heo may và mùi hoa sữa, luôn khiến người ta bồi hồi.
+Chị ấy mỉm cười, khẽ gật đầu, rồi nói nhỏ: "Em cứ yên tâm, chị sẽ lo phần còn lại."
+Thật không thể tin được, chỉ trong vòng một năm mà thành phố đã thay đổi nhiều đến vậy!
+Theo các chuyên gia, ngủ đủ giấc, ăn uống lành mạnh và vận động thường xuyên là chìa khóa để sống khỏe.
+Anh có thể giải thích rõ hơn không, vì tôi vẫn chưa hiểu tại sao kết quả lại khác nhau?
+Bố bảo tôi: "Làm gì thì làm, nhưng phải làm cho đến nơi đến chốn."
+Ôi, nhìn kìa, cầu vồng xuất hiện ngay sau cơn mưa!
+Trong bài giảng hôm nay, chúng ta sẽ tìm hiểu ba vấn đề chính: nguyên nhân, hậu quả và giải pháp.
+Có ai giải thích giúp tôi, tại sao nước biển lại mặn còn nước sông thì không?
+Người dẫn chương trình tuyên bố: "Và người chiến thắng đêm nay chính là... thí sinh số bảy!"
+Mặc dù đã rất mệt, nhưng cô ấy vẫn cố gắng ở lại văn phòng để hoàn thành nốt bản báo cáo.
+Khi được hỏi về bí quyết thành công, anh ấy chỉ cười và nói: "Kiên trì, thế thôi."
+Đừng bỏ cuộc nhé, chỉ còn một chút nữa thôi là chúng ta về đích rồi!
+Sáng hôm ấy, sương mù dày đặc, những ngọn đèn đường vẫn còn sáng, và phố xá vắng lặng lạ thường.
+Liệu trí tuệ nhân tạo có thể thay thế hoàn toàn con người trong công việc sáng tạo hay không?
+"Cháu chào bà ạ!", cô bé lễ phép khoanh tay chào khi thấy bà cụ hàng xóm.
+Phóng viên cho biết, đến chiều nay, lực lượng cứu hộ đã tiếp cận được khu vực bị cô lập.
+Chúng ta không thể thay đổi quá khứ, nhưng hoàn toàn có thể làm chủ tương lai của chính mình.
+Sao cậu không nói với tớ sớm hơn, để tớ còn kịp chuẩn bị?
+Cả hội trường vỡ òa trong tiếng vỗ tay khi đội tuyển bước lên bục nhận huy chương vàng!
+Thầy giáo nhấn mạnh: "Đọc kỹ đề bài là bước quan trọng nhất, các em nhớ chưa?"
+Vào những ngày cuối năm, khi mọi người tất bật sắm Tết, phố phường trở nên rực rỡ và nhộn nhịp hơn hẳn.
+Nếu bạn gặp bất kỳ khó khăn nào trong quá trình cài đặt, đừng ngần ngại liên hệ với chúng tôi.
+Chà, món này ngon thật đấy, bạn học nấu ở đâu vậy?
+Anh ấy thở dài: "Giá mà tôi biết điều này sớm hơn, mọi chuyện đã khác rồi."
+Ở phần tiếp theo, chúng ta sẽ cùng xem xét từng bước, từ chuẩn bị nguyên liệu cho đến trình bày món ăn.
+Có ai còn câu hỏi nào không, trước khi chúng ta chuyển sang phần thảo luận nhóm?
+Nhanh lên, nhanh lên, xe sắp chạy rồi!
+Bà ngoại vừa xếp quần áo vừa kể: "Hồi ấy nghèo lắm, cả nhà chỉ có một chiếc áo bông, ai đi đâu thì người đó mặc."
+Theo dự báo, từ đêm nay đến sáng mai, các tỉnh miền núi phía Bắc có mưa to, đề phòng lũ quét và sạt lở đất.
+Tôi không biết phải nói gì hơn, ngoài lời cảm ơn chân thành đến tất cả mọi người.
+Em ơi, cho chị hỏi, đường đến bệnh viện Bạch Mai đi hướng nào nhỉ?
+Thật đáng tiếc, trận đấu đã kết thúc với thất bại sát nút chỉ trong những giây cuối cùng!
+"Học, học nữa, học mãi" là câu nói mà nhiều thế hệ học sinh Việt Nam đều thuộc lòng.
+Khi màn đêm buông xuống, cả bản làng chìm vào yên tĩnh, chỉ còn tiếng suối chảy và tiếng côn trùng rả rích.
+Bạn nghĩ sao, chúng ta nên chọn phương án thứ nhất vì tiết kiệm, hay phương án thứ hai vì nhanh hơn?
+Cậu ấy vỗ vai tôi và nói: "Không sao đâu, lần sau mình làm tốt hơn là được."
+Đây là lần đầu tiên, trong suốt mười năm làm nghề, tôi gặp một trường hợp đặc biệt như vậy.
+Ôi trời, mình quên mang ví rồi, làm sao bây giờ?
+Trước khi kết thúc, tôi muốn nhắc lại một điều: an toàn của các bạn luôn là ưu tiên hàng đầu.
+Chị hàng xóm gọi với sang: "Nhà ơi, có bưu phẩm gửi cho nhà mình này!"
+Tuy thời tiết không thuận lợi, nhưng hàng nghìn người vẫn đổ về quảng trường để xem pháo hoa.
+Liệu chúng ta có đủ thời gian để hoàn thành mọi thứ trước buổi ra mắt vào thứ Hai tuần sau không?
+Ông ấy dừng lại một lúc, nhìn ra cửa sổ, rồi chậm rãi kể tiếp câu chuyện còn dang dở.
+Hoan hô, đội mình ghi bàn rồi, vào rồi!
+
+# 8. Targeted top-up for phrases/tokens phase 3-4 tagged acoustic (phonemes already
+#    correct, CER still marginal) — more takes for the model's own best rendition to
+#    be kept from. Never near-duplicates of heldout.txt; the tool filters those anyway.
+Nó nói can do it, rồi bắt tay vào làm luôn không chần chừ.
+Cả đội hô vang "we can do it" trước khi bước vào trận chung kết.
+Đừng lo, mình sẽ nói với sếp rằng "I can do it" trước cuối tuần này.
+Give me five, cậu vừa hoàn thành xuất sắc bài thuyết trình đấy.
+Anh ấy giơ tay lên nói give me five với cả đội sau khi thắng trận.
+Repo của dự án nằm ở github.com/vieneu-team/core-engine, bạn vào xem thử nhé.
+Tài liệu API đầy đủ ở docs.vieneu.dev/api/reference cho các bạn tham khảo.
+Cuộc họp tuần này chuyển sang meet.google.com/xyz-abcd-efg lúc chín giờ sáng.
+Gửi báo cáo về địa chỉ support.team@vieneu-example.com trước năm giờ chiều.
+Liên hệ qua email contact.sales@company-demo.com nếu cần hỗ trợ thêm.
+File cấu hình nằm trong data.json, các bạn mở bằng trình soạn thảo bất kỳ.
+Đội ngũ kỹ thuật dùng ChatGPT và Claude để hỗ trợ viết tài liệu kỹ thuật.
+Can you do it by Monday, or should we push the deadline to next week?
+Can you finish it by tomorrow, or do you need more time on this one?
+Chuyện khuya khoắt ngoằn ngoèo ấy khiến người nghe cứ ngỡ ngàng mãi không thôi.
+Tiếng chim ríu rít ngoằn ngoèo qua từng vòm lá xanh biếc buổi sớm mai.
+Giọng nói nghèn nghẹn, ngập ngừng mãi anh mới kể hết câu chuyện năm xưa.
+Người hướng dẫn viên giải thích rằng ngôi đền này được xây dựng từ thế kỷ mười một, dưới thời nhà Lý.
+Con có biết vì sao lá cây lại chuyển sang màu vàng vào mùa thu không?
+Cô ấy nói nhẹ nhàng nhưng dứt khoát: "Tôi sẽ không thay đổi quyết định của mình."
+Cảm ơn các bạn đã đồng hành cùng chương trình, chúc các bạn một buổi tối an lành và hẹn gặp lại!

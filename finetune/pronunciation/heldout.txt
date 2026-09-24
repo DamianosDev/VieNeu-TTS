@@ -1,0 +1,125 @@
+# Held-out pronunciation set for Minh Quân Pro. Never used for training.
+# Phase 1 copies this file to apps/vieneu-tts/finetune/pronunciation/heldout.txt.
+# One sentence per line; lines starting with '#' are comments.
+
+# Ambiguous words: English sense inside Vietnamese sentences
+Anh ấy nói no, không đồng ý với kế hoạch đó.
+Cô ấy chỉ trả lời đúng một chữ no rồi rời đi.
+Nó can do it, tin tôi đi.
+Yes we can, cả đội đã hô lên như vậy.
+Just do it là câu khẩu hiệu nổi tiếng của Nike.
+Họ gọi đó là love at first sight.
+Anh ấy bảo let it go, đừng nghĩ nữa.
+Tôi thích bài hát Let It Be của The Beatles.
+Cứ go with the flow là được.
+Bài này is so good luôn, nghe mãi không chán.
+Say no to plastic là chiến dịch của trường mình.
+Welcome to the jungle, anh ấy nói khi mở cửa.
+Give me five, cậu làm tốt lắm.
+Để tôi check in cho cả nhóm ở quầy lễ tân.
+Nhớ log in bằng tài khoản công ty nhé.
+Nhấn sign up ở góc phải màn hình.
+
+# Ambiguous words: Vietnamese sense
+Tôi ăn no rồi, không ăn thêm được nữa.
+Bạn có can đảm nói ra sự thật không?
+Mẹ phải can hai anh em đang cãi nhau.
+Anh ấy do dự mãi mới quyết định.
+Hôm nay tôi mua ít rau và một con cá.
+Chị ấy đi in tài liệu ở tiệm gần nhà.
+Trời hôm nay to gió quá.
+Con mèo kêu me me suốt cả buổi sáng.
+Tin này được đăng trên báo sáng nay.
+Thay pin cho điều khiển ti vi đi con.
+Cái áo này hơi to so với dáng em.
+
+# English words inside Vietnamese sentences
+Mình deploy lên server rồi check log giúp nhé.
+Cuộc meeting chiều nay sẽ bàn về roadmap quý tới.
+Deadline là thứ sáu, team cố gắng hoàn thành feedback trước đó.
+Bạn nhớ update app lên phiên bản mới nhất.
+Tối nay mình livestream trên YouTube lúc tám giờ.
+Chiến lược marketing năm nay tập trung vào TikTok và Facebook.
+Hãy share màn hình để mọi người cùng xem slide.
+Cô ấy là product manager của một startup ở Hà Nội.
+Tôi đang học machine learning và deep learning.
+Bấm subscribe và bật chuông thông báo nhé.
+Dữ liệu được lưu trên cloud nên không lo mất.
+Mình cần refactor lại đoạn code này cho gọn.
+Anh ấy làm việc remote cho một công ty ở Singapore.
+File PDF này nặng quá, bạn nén lại giúp mình.
+
+# URLs and domains
+Truy cập https://github.com/DamianosDev/VieNeu-TTS để xem mã nguồn.
+Vào trang vnexpress.net mỗi sáng để đọc tin.
+Đăng ký tại www.example.com/dang-ky trước ngày mai.
+Tài liệu nằm ở docs.python.org/3/tutorial.
+Xem video tại youtube.com/watch?v=abc123.
+Trang chủ của dự án là https://vieneu.io.
+Link họp là meet.google.com/abc-defg-hij.
+
+# Emails, handles, hashtags
+Email của tôi là thanh_nguyen.dev@gmail.com.
+Gửi hồ sơ về hr-team@example.com trước năm giờ chiều.
+Theo dõi tài khoản @damianos_dev để cập nhật tin mới.
+Dùng hashtag #dubmeet khi đăng bài nhé.
+
+# File paths, code identifiers, symbols
+Biến user_id và file config.yaml nằm trong thư mục src/app.
+Mở file C:\Users\ekko\Documents\report.docx để xem.
+Đường dẫn là /usr/local/bin/python3.
+Hàm getUserName trả về tên người dùng.
+Đặt tên biến là user_name hoặc userName đều được.
+Thư mục node_modules chiếm rất nhiều dung lượng.
+Chạy lệnh npm run build trước khi deploy.
+Nhấn Ctrl+Shift+P để mở bảng lệnh.
+Dùng C++ hoặc C# đều được cho dự án này.
+Framework này viết bằng Node.js và chạy trên .NET.
+Đọc file README.md trước khi cài đặt.
+Kết quả là A&B chứ không phải A|B.
+Tỉ lệ là 3/4, tức là 75%.
+Phiên bản v3.2.1 sửa lỗi nghiêm trọng.
+Gói vieneu-tts nằm trong thư mục apps.
+Thêm dấu gạch dưới _ vào giữa hai từ.
+Ký tự @ và # thường dùng trên mạng xã hội.
+
+# Acronyms and brands
+API trả về status 404 khi không tìm thấy trang.
+Cuộc họp bàn về KPI và OKR của quý ba.
+Tôi dùng iPhone và MacBook để làm việc.
+GPU của máy là RTX 4080 với 16 GB VRAM.
+Mình lưu ảnh trên Google Drive và iCloud.
+Công ty dùng AWS cho hạ tầng và GitHub cho mã nguồn.
+File JSON này chứa cấu hình của ứng dụng.
+Hãy mở ChatGPT hoặc Claude để hỏi thử.
+
+# Numbers, dates, money, units
+Giá là 1.500.000 đồng, tăng 12,5% so với năm ngoái.
+Phiên bản mới ra ngày 24/09/2026.
+Cuộc họp bắt đầu lúc 14:30 và kết thúc lúc 16h.
+Chiếc laptop này có giá 1,299 USD.
+Anh ấy chạy 10 km trong 45 phút.
+Gọi cho tôi theo số 0912 345 678.
+Nhiệt độ hôm nay khoảng 32°C.
+Dân số thành phố đạt 8,5 triệu người.
+Chương 3, trang 125, dòng 7.
+Từ năm 2020 đến 2025, doanh thu tăng gấp đôi.
+
+# Pure English
+Welcome back to the channel, today we are building a web app.
+I can't believe it's already been ten years.
+Let's take a quick look at the documentation.
+The server returned an error, so we need to check the logs.
+She said no, and that was the end of it.
+Can you do it by Friday?
+It is what it is.
+
+# Pure Vietnamese, tones and prosody
+Người ta thường nói rằng, đi một ngày đàng học một sàng khôn.
+Sáng sớm tinh mơ, sương vẫn còn đọng trên những ngọn cỏ.
+Bạn đã bao giờ tự hỏi vì sao bầu trời lại có màu xanh chưa?
+Trời ơi, sao lại có chuyện như thế này được!
+Ông ấy bảo: "Cứ bình tĩnh, mọi chuyện rồi sẽ ổn thôi."
+Nghiêng nghiêng bóng nắng chiều, khuấy động cả khoảng sân nhỏ.
+Chuyện khuya khoắt ngoằn ngoèo ấy khiến ai cũng nguệch ngoạc ghi chép.
+Những người trẻ ở thành phố thường xuyên phải đối mặt với áp lực công việc.

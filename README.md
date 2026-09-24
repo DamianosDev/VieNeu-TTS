@@ -133,6 +133,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 The `vieneu` SDK **defaults to VieNeu-TTS v3 Turbo (48 kHz)**. The minimal install is **torch-free**: on CPU everything runs on **ONNX Runtime** (PyTorch is never imported), and on a CUDA machine it auto-switches to the PyTorch engine — where inference is **batched automatically** (same API, no code change).
 
+Before phonemization, `V3TurboVieNeuTTS` rewrites ambiguous English words, URLs, and technical tokens into a form sea-g2p reads correctly (`text_rules=True` by default; `pronunciations=<path>` loads a `term = spoken form` override file on top) — see [`finetune/README.md`](finetune/README.md) below.
+
 ### Quick Start
 
 **CPU (default)** — torch-free, runs v3 Turbo via ONNX Runtime. Most users want this — **RTF ≈ 0.5** on a 12th-gen Core i5 (numbers in [§4 Benchmarks](#benchmarks)):

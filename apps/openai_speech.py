@@ -44,6 +44,15 @@ Environment:
     VIENEU_MAX_STREAMS=16 (GPU)        VIENEU_QUEUE=16   VIENEU_QUEUE_TIMEOUT=10
     VIENEU_API_KEY=...  (Bearer auth; unset = open)
     VIENEU_WATERMARK=1                 HOST=0.0.0.0  PORT=8000
+    VIENEU_BACKBONE_REPO=...  (unset = the published pnnbao-ump/VieNeu-TTS-v3-Turbo
+                               repo; a local folder or another Hub repo loads a
+                               fine-tuned backbone instead. PyTorch only — refused at
+                               startup if the resolved backend is ONNX)
+    VIENEU_TEXT_RULES=1        (default on) rewrite ambiguous English words, URLs,
+                               paths, and identifiers into <en>...</en> before
+                               normalization; VIENEU_TEXT_RULES=0 disables it
+    VIENEU_PRONUNCIATIONS=...  (unset = built-in overrides only) a "term = spoken
+                               form" file layered on top of the built-in list
 """
 from __future__ import annotations
 
@@ -91,14 +100,35 @@ class Engine:
     def __init__(self):
         backend = os.environ.get("VIENEU_BACKEND", "auto")
         device = os.environ.get("VIENEU_DEVICE", "auto")
+        backbone_repo = os.environ.get("VIENEU_BACKBONE_REPO") or None
         kw: dict = dict(backend=backend, device=device,
                         precision=os.environ.get("VIENEU_PRECISION", "fp32"),
                         onnx_dir=os.environ.get("VIENEU_ONNX_DIR") or None,
-                        max_streams=_env_int("VIENEU_MAX_STREAMS", 16))
+                        max_streams=_env_int("VIENEU_MAX_STREAMS", 16),
+                        text_rules=os.environ.get("VIENEU_TEXT_RULES", "1") != "0")
+        if backbone_repo:
+            kw["backbone_repo"] = backbone_repo
+        pronunciations = os.environ.get("VIENEU_PRONUNCIATIONS") or None
+        if pronunciations:
+            kw["pronunciations"] = pronunciations
         log.info("⏳ loading VieNeu-TTS v3 Turbo (backend=%s device=%s)", backend, device)
         t = time.perf_counter()
         self.tts = Vieneu(mode="v3turbo", **kw)
         self.backend = self.tts.backend
+        if backbone_repo and self.backend == "onnx":
+            # A custom backbone (a merged fine-tune, most often) has no ONNX export:
+            # ``V3TurboVieNeuTTS`` only reads ``onnx_subfolder`` from the *default*
+            # repo (see its ``use_onnx`` branch). Silently falling back would serve
+            # the wrong voice, so this fails loudly instead of a confusing 500 on the
+            # first request.
+            raise RuntimeError(
+                f"VIENEU_BACKBONE_REPO={backbone_repo!r} needs the PyTorch backend, but "
+                f"this server resolved backend={self.backend!r} (no CUDA torch, or "
+                "VIENEU_BACKEND/VIENEU_DEVICE forced CPU). Install the CUDA extras "
+                "(scripts\\windows\\setup.ps1 -VieneuCuda) or set VIENEU_DEVICE=cuda."
+            )
+        n_overrides = len(self.tts._pronunciation_overrides or {}) if pronunciations else 0
+        log.info("📖 text_rules=%s, %d pronunciation override(s) loaded", self.tts.text_rules, n_overrides)
         self.watermark = os.environ.get("VIENEU_WATERMARK", "1") != "0"
         # GPU: the scheduler batches every stream. CPU: the ONNX engine interleaves
         # calls frame by frame, but they share the cores — measured on a 6-core

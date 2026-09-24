@@ -287,7 +287,8 @@ def normalize_to_chunks(
 
 
 def normalize_to_chunks_v3(
-    text: str, max_chars: int = 256, min_chunk_chars: int = 20
+    text: str, max_chars: int = 256, min_chunk_chars: int = 20,
+    text_rules: bool = True, pronunciations: Optional[dict] = None,
 ) -> list[str]:
     """Chia chunk cho đường v3 GIỐNG HỆT v2-gpu: cắt theo độ dài TEXT ĐÃ normalize.
 
@@ -304,7 +305,8 @@ def normalize_to_chunks_v3(
     phonemize từng chunk bằng :func:`phonemize_text_with_emotions`.
     """
     return normalize_to_chunks_v3_with_gaps(
-        text, max_chars=max_chars, min_chunk_chars=min_chunk_chars
+        text, max_chars=max_chars, min_chunk_chars=min_chunk_chars,
+        text_rules=text_rules, pronunciations=pronunciations,
     )[0]
 
 
@@ -352,7 +354,8 @@ def _merge_short_chunks(
 
 
 def normalize_to_chunks_v3_with_gaps(
-    text: str, max_chars: int = 256, min_chunk_chars: int = 20
+    text: str, max_chars: int = 256, min_chunk_chars: int = 20,
+    text_rules: bool = True, pronunciations: Optional[dict] = None,
 ) -> tuple[list[str], list[str]]:
     """Như :func:`normalize_to_chunks_v3` nhưng trả kèm loại ranh giới GIỮA các
     chunk để ghép audio nghỉ dài/ngắn theo ngữ cảnh.
@@ -365,11 +368,22 @@ def normalize_to_chunks_v3_with_gaps(
     Ranh giới ``sentence``/``minor`` được phân loại LẠI trên chunk ĐÃ ``punc_norm``
     (punc_norm có thể ép dấu cuối cho câu ngắn) để khớp intonation audio thật;
     ``para`` (ngắt đoạn) giữ nguyên — kể cả trên đường có emotion cue.
+
+    ``text_rules`` (default on) rewrites ambiguous English words, URLs, paths, and
+    identifiers into ``<en>...</en>`` before normalization — see
+    :func:`vieneu_utils.text_rules.apply_text_rules`. ``pronunciations`` is an
+    optional ``{term: spoken form}`` override dict layered on top of the built-in
+    list. Off by ``text_rules=False``, behavior is byte-identical to before this
+    was added.
     """
     from vieneu_utils.core_utils import pack_sentences_into_chunks, _classify_gap
 
     if not text:
         return [], []
+
+    if text_rules:
+        from vieneu_utils.text_rules import apply_text_rules
+        text = apply_text_rules(text, overrides=pronunciations)
 
     keep_cues = "[" in text or "<|emotion_" in text
     chunks: list[str] = []

@@ -1,0 +1,22 @@
+# Built-in pronunciation overrides for VieNeu-TTS. Loaded automatically by
+# apply_text_rules() whenever text_rules is on (the default). Format:
+#   term = spoken form
+# Matching is whole-word, longest term first, one pass (no chained
+# replacements). A term with an uppercase letter matches case-sensitively;
+# an all-lowercase term matches case-insensitively. The spoken form may
+# contain <en>...</en>. A user pronunciation file (VIENEU_PRONUNCIATIONS /
+# Vieneu(..., pronunciations=...)) is layered on top and wins on conflicts.
+
+# Symbols and abbreviations read the Vietnamese-letter way today.
+C++ = <en>C plus plus</en>
+C# = <en>C sharp</en>
+.NET = <en>dot net</en>
+Ctrl = <en>control</en>
+
+# Idioms made of Vietnamese-syllable-shaped English words with no other
+# English anchor in the same clause, so the code-switch pass alone cannot
+# reach them.
+say no = <en>say no</en>
+nói no = nói <en>no</en>
+can do it = <en>can do it</en>
+let it go = <en>let it go</en>
